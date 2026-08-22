@@ -198,16 +198,35 @@ Lúc đó dùng `./gradlew :app:assembleDebug` để thử nhanh.
 
 Không cần dây, không cần USB, không cần ADB.
 
-**Bước 1 — cho APK vào chỗ TV tải được.** Copy APK vào `admin/public/` rồi build
-và deploy lại trang admin:
+**Bước 1 — cho APK vào chỗ TV tải được.** Copy APK vào `admin/public/` rồi deploy
+lại trang admin. Vercel phục vụ nó như file tĩnh:
 
 ```bash
 cp tv/app/build/outputs/apk/release/app-release.apk admin/public/youtube-tv.apk
-cd admin && npm run build      # rồi deploy lại như mục 2
+cd admin && vercel deploy --prod --yes
 ```
 
-APK giờ tải được ở `https://<domain-cua-ban>/youtube-tv.apk`, khoảng 1,6 MB nên
-TV tải vài giây.
+APK tải được ở hai đường (`/apk` là redirect cho đỡ phải gõ dài):
+
+```
+https://youtube-admin-kappa.vercel.app/apk
+https://youtube-admin-kappa.vercel.app/youtube-tv.apk
+```
+
+Khoảng 1,6 MB nên TV tải vài giây. `vercel.json` đã đặt
+`Content-Type: application/vnd.android.package-archive` để trình duyệt/TV nhận
+đúng là file cài đặt.
+
+> **Muốn địa chỉ ngắn hơn để gõ bằng remote?** Alias kiểu `ytkho.vercel.app` gán
+> được nhưng bị **Deployment Protection** của Vercel chặn — nó trả về trang đăng
+> nhập SSO thay vì APK, trong khi domain production tự sinh thì được miễn. Muốn
+> dùng alias ngắn thì vào **Vercel → project → Settings → Deployment Protection**
+> tắt *Vercel Authentication*, rồi:
+> ```bash
+> vercel alias set <deployment-url> ytkho.vercel.app
+> ```
+> Trang admin và APK vốn đã thiết kế để công khai (quyền đi bằng token, không
+> phải bằng việc ẩn địa chỉ) nên tắt cái đó không làm mất an toàn gì.
 
 **Bước 2 — trên TV, cài app "Downloader".** Mở Google Play trên TV, tìm
 **Downloader** (biểu tượng quả cầu màu cam, của AFTVnews), cài vào.

@@ -9,6 +9,5 @@ node_modules
 dist
 .vercel
 
-# APK duoc host cho TV tai ve: neu muon Vercel phuc vu no thi xoa dong duoi.
-# De day thi APK khong bi upload (1.6MB moi lan deploy).
-public/*.apk
+# APK trong public/ CO duoc upload — do la cach TV tai app ve qua Downloader.
+# Xem docs/SETUP.md muc 4.

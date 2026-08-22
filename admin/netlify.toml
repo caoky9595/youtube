@@ -5,6 +5,13 @@
   publish = "dist"
   command = "npm run build"
 
+# Duong dan ngan de go bang remote tren TV
+[[redirects]]
+  from = "/apk"
+  to = "/youtube-tv.apk"
+  status = 302
+  force = true
+
 # SPA: moi duong dan khong khop file nao thi tra ve index.html.
 # Netlify uu tien file that truoc, nen /app-release.apk van tai binh thuong.
 [[redirects]]
