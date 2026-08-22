@@ -1,0 +1,26 @@
+# --- Bi mat: tuyet doi khong commit ---
+# Khoa Supabase, duong dan + mat khau keystore
+admin/.env
+admin/.env.local
+admin/.env.*.local
+tv/local.properties
+*.jks
+*.keystore
+
+# APK duoc copy vao admin/public de TV tai ve — 1.6MB, khong can trong repo
+admin/public/*.apk
+
+# --- Ket qua build ---
+node_modules/
+dist/
+build/
+.gradle/
+*.apk
+*.aab
+
+# --- Cong cu / he dieu hanh ---
+.DS_Store
+.idea/
+*.iml
+.vscode/
+*.log

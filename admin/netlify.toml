@@ -1,0 +1,31 @@
+# Cau hinh cho Netlify. Dung ca khi keo tha thu muc dist/ vao app.netlify.com/drop
+# lan khi noi voi Git.
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# SPA: moi duong dan khong khop file nao thi tra ve index.html.
+# Netlify uu tien file that truoc, nen /app-release.apk van tai binh thuong.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Service worker khong duoc cache, khong thi sua xong ma trinh duyet van chay ban cu
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "no-cache"
+
+# APK: bat trinh duyet tai xuong thay vi doan kieu file
+[[headers]]
+  for = "/*.apk"
+  [headers.values]
+    Content-Type = "application/vnd.android.package-archive"

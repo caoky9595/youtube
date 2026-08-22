@@ -1,0 +1,11 @@
+# Cho Cloudflare Pages. Netlify cung doc file nay, nhung netlify.toml uu tien hon.
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache
+
+/*.apk
+  Content-Type: application/vnd.android.package-archive

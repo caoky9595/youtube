@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Compose ve toan bo UI, nen theme XML chi can lo mau nen luc khoi dong
+      (tranh nhay trang) va bo action bar. Dung Theme.Material de khong phai
+      keo them phu thuoc appcompat/material.
+    -->
+    <style name="Theme.YouTube" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/zt_bg</item>
+        <item name="android:statusBarColor">@color/zt_bg</item>
+        <item name="android:navigationBarColor">@color/zt_bg</item>
+    </style>
+</resources>
