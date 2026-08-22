@@ -95,6 +95,11 @@ tự nó **không mở được gì**. Bảng `libraries`/`devices` không mở 
 nào, nên không ai gom được token từ đó. Vì vậy deploy trang admin lên server
 công khai vẫn an toàn: không có token thì không thấy kho nào.
 
+## Đang chạy ở đâu
+
+- Trang quản trị: **https://youtube-admin-kappa.vercel.app**
+- Mã nguồn: **https://github.com/caoky9595/youtube**
+
 ## Chạy nhanh
 
 ```bash

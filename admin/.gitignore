@@ -29,3 +29,4 @@ dist-ssr
 
 # APK duoc copy vao day de host cho TV tai ve — khong commit (14MB)
 public/*.apk
+.vercel

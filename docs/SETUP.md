@@ -95,11 +95,29 @@ npx wrangler pages deploy dist --project-name youtube-admin
 
 Lần đầu nó mở trình duyệt để đăng nhập. Ra địa chỉ `https://youtube-admin.pages.dev`.
 
-**Cách 3 — Vercel**
+**Cách 3 — Vercel (đang dùng)**
+
+Project đã tạo sẵn: **https://youtube-admin-kappa.vercel.app**
 
 ```bash
-npx vercel --prod dist
+cd admin
+vercel deploy --prod --yes
 ```
+
+Khai hai biến môi trường (làm một lần):
+
+```bash
+vercel env add VITE_SUPABASE_URL production        # dán URL Supabase
+vercel env add VITE_SUPABASE_ANON_KEY production   # dán khoá anon
+vercel deploy --prod --yes                         # deploy lại để nhúng vào bundle
+```
+
+Hoặc khai ở dashboard: **Project → Settings → Environment Variables**.
+
+> ⚠️ Vercel **không** dùng `.gitignore` để loại file khi upload. Thiếu
+> `.vercelignore` thì `admin/.env` ở máy bị đẩy lên và nhúng thẳng vào bundle
+> production — site sẽ trỏ vào địa chỉ local của bạn. Repo đã có `.vercelignore`
+> loại `.env*`; đừng xoá nó.
 
 Repo có sẵn `netlify.toml`, `vercel.json` và `public/_headers` để cả ba host đặt
 đúng `Content-Type` cho manifest và APK, và không cache `sw.js`.
