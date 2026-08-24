@@ -1,0 +1,17 @@
+# Vercel KHONG dung .gitignore de loai file khi upload.
+# File nay chan bi mat lot len neu ai chay `vercel deploy` tu goc repo.
+# (Deploy chinh thuc di qua Git nen repo vốn khong chua cac file nay.)
+
+admin/.env
+admin/.env.local
+admin/.env.*.local
+tv/local.properties
+*.jks
+*.keystore
+
+node_modules
+admin/node_modules
+admin/dist
+tv/build
+tv/app/build
+tv/.gradle

@@ -15,6 +15,10 @@ const ANON_NAMES = [
   'VITE_SUPABASE_ANON_KEY',
   'SUPABASE_ANON_KEY',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  // Supabase dang chuyen sang cap khoa moi: publishable (cong khai) va secret.
+  // Integration khai ca hai dang, nen doc them de project moi cung chay.
+  'SUPABASE_PUBLISHABLE_KEY',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
 ]
 
 /**
