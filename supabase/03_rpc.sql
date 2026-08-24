@@ -48,8 +48,8 @@ begin
   returning * into v_device;
 
   -- Da ghep va khong ai doi ma thi tra ve luon trang thai.
-  -- Xet tv_token chu khong xet library_id: thiet bi bi Ngat van giu library_id
-  -- (de ghep lai tro ve dung kho cu) nhung phai duoc coi la CHUA ghep.
+  -- Xet tv_token (khong phai library_id): mot thiet bi vua goi pair_request
+  -- lan dau da co hang trong bang nhung chua co tv_token, phai coi la CHUA ghep.
   if v_device.tv_token is not null and not p_force_code then
     return jsonb_build_object(
       'paired', true,
@@ -117,7 +117,9 @@ begin
     return jsonb_build_object('paired', false, 'unknown_device', true);
   end if;
 
-  -- Xet tv_token: thiet bi bi Ngat van con library_id nhung chua duoc ghep lai
+  -- Ca hai deu phai co: tv_token null nghia la chua duoc admin nao nhap ma,
+  -- library_id null la truong hop ly thuyet (khong con xay ra tu khi bo unpair)
+  -- nhung giu kiem tra cho chac.
   if v_device.tv_token is null or v_device.library_id is null then
     return jsonb_build_object('paired', false);
   end if;
@@ -270,7 +272,6 @@ begin
         select jsonb_agg(
                  jsonb_build_object(
                    'id', d.id, 'name', d.name,
-                   'paired', d.tv_token is not null,
                    'paired_at', d.paired_at, 'last_seen_at', d.last_seen_at
                  ) order by d.paired_at nulls last, d.created_at
                )
@@ -301,47 +302,12 @@ end;
 $$;
 
 /**
- * Ngat mot TV khoi kho: thu hoi tv_token nen TV do mat quyen doc ngay, va hien
- * lai man hinh nhap ma.
+ * Bo mot TV khoi kho VA xoa sach video cua kho do. Day la duong DUY NHAT de cat
+ * mot TV, dung khi thanh ly, cho TV di, hoac muon lam lai kho tu dau.
  *
- * GIU NGUYEN library_id. Truoc day ham nay xoa ca library_id, hau qua la khi TV
- * ghep lai ma trang admin khong kem token (trinh duyet khac, hoac da "Quen kho")
- * thi pair_claim thay thiet bi khong thuoc kho nao va TAO KHO MOI rong. Kho cu
- * van con video nhung khong ai co token de vao, con admin thi them video vao kho
- * cu trong khi TV da sang kho moi.
- *
- * Giu library_id thi ghep lai la tro ve dung kho cu, khong mat gi.
- * Muon bo han thiet bi khoi kho thi dung forget_device().
- */
-create or replace function public.unpair_device(p_admin_token text, p_device_id uuid)
-returns void
-language plpgsql
-volatile
-security definer
-set search_path = public
-as $$
-declare
-  v_library_id uuid;
-begin
-  select id into v_library_id from public.libraries
-   where admin_token = trim(coalesce(p_admin_token, ''));
-  if v_library_id is null then
-    raise exception 'Token quản trị không hợp lệ';
-  end if;
-
-  update public.devices
-     set tv_token = null, paired_at = null
-   where id = p_device_id and library_id = v_library_id;
-  if not found then
-    raise exception 'Thiết bị không thuộc kho này';
-  end if;
-end;
-$$;
-
-/**
- * Bo han mot thiet bi khoi kho. Khac unpair_device: sau khi goi ham nay, TV do
- * ghep lai se tao kho MOI chu khong tro ve kho cu. Dung khi thanh ly hoac cho
- * TV di.
+ * Truoc day co them "Thu hoi quyen" (unpair_device) chi ngat tam thoi va giu
+ * video, nhung hai muc cung mot cho lam nguoi dung roi ren nen bo, chi giu
+ * lai mot lenh don kho nay.
  */
 create or replace function public.forget_device(p_admin_token text, p_device_id uuid)
 returns void
@@ -364,6 +330,11 @@ begin
   if not found then
     raise exception 'Thiết bị không thuộc kho này';
   end if;
+
+  -- Xoa video cua kho: shelf_videos va watch_progress an theo (on delete
+  -- cascade tren videos). Shelves giu lai nhu vo rong de con hang khi them
+  -- video moi.
+  delete from public.videos where library_id = v_library_id;
 end;
 $$;
 
@@ -653,7 +624,6 @@ grant execute on function public.pair_code_status(text)          to anon, authen
 grant execute on function public.pair_claim(text, text)          to anon, authenticated;
 grant execute on function public.library_info(text)              to anon, authenticated;
 grant execute on function public.rename_library(text, text)      to anon, authenticated;
-grant execute on function public.unpair_device(text, uuid)       to anon, authenticated;
 grant execute on function public.forget_device(text, uuid)       to anon, authenticated;
 grant execute on function public.tv_home(integer)                to anon, authenticated;
 grant execute on function public.search_videos(text, integer)    to anon, authenticated;

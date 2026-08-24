@@ -7,11 +7,10 @@ import { Button } from './ui'
 const CODE_LENGTH = 6
 
 /**
- * first     = lan dau, chua quan tri kho nao
- * add       = da co kho, ghep THEM mot TV nua vao kho do
- * reconnect = mot TV vua bi thu hoi quyen, nay noi lai voi dung kho cu
+ * first = lan dau, chua quan tri kho nao
+ * add   = da co kho, ghep THEM mot TV nua vao kho do
  */
-type Mode = 'first' | 'add' | 'reconnect'
+type Mode = 'first' | 'add'
 
 type Props = {
   mode?: Mode
@@ -27,10 +26,6 @@ const COPY: Record<Mode, { title: string; hint: string }> = {
   add: {
     title: 'Ghép thêm một TV',
     hint: 'Mở app trên TV mới, vào mục Kết nối, nó sẽ hiện một mã 6 ký tự. Nhập mã đó vào đây để TV này dùng chung kho video.',
-  },
-  reconnect: {
-    title: 'Kết nối lại với TV',
-    hint: 'Trên TV vừa bị thu hồi, vào mục Kết nối ở menu bên trái để lấy mã mới rồi nhập vào đây. TV sẽ về đúng kho cũ, toàn bộ video vẫn còn nguyên.',
   },
 }
 

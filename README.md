@@ -62,10 +62,10 @@ quyền. Hai đường:
 
 Máy mới nhận token của **đúng kho đang dùng**, không tạo kho mới.
 
-**Thu hồi rồi nối lại.** Bên admin bấm **Thu hồi quyền** thì TV thôi xem được và
-trong ~15 giây tự chuyển sang mục Kết nối, hiện mã mới. Muốn nối lại: dòng thiết
-bị đó có nút **Kết nối lại** → nhập mã mới → TV về đúng kho cũ, **video còn
-nguyên**.
+**Bỏ một TV khỏi kho.** Tab **TV đã ghép** → **Bỏ khỏi kho**. TV đó thôi xem
+được và trong ~8 giây tự chuyển sang mục Kết nối, hiện mã mới — **toàn bộ video
+trong kho bị xoá theo, không khôi phục được**. Ghép lại sau đó là một kho
+trống. Dùng khi cho TV đi, thanh lý, hoặc muốn làm lại kho từ đầu.
 
 ## Cách thêm video
 

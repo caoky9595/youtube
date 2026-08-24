@@ -109,12 +109,6 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
         }
     }
 
-    // Chua ghep thi luon co mot vong hoi ngam, du dang o man hinh nao. Khong co
-    // no thi nhap ma ben trang quan tri xong TV van dung im cho tai khi mo lai.
-    LaunchedEffect(paired) {
-        if (paired) vm.stopWatchingPairing() else vm.watchForPairing()
-    }
-
     // Ghep xong thi tu chuyen sang trang chu
     LaunchedEffect(paired) {
         if (paired && dest == NavDest.Connect) dest = NavDest.Home
@@ -136,10 +130,6 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
             while (true) {
                 delay(HOME_REFRESH_MS)
                 vm.refresh(quiet = true)
-                // Kiem luon xem con duoc ghep khong: bi thu hoi quyen thi
-                // tv_home chi tra ve rong chu khong bao loi, khong hoi rieng thi
-                // TV cu ngoi hien "Chua co video nao" mai.
-                vm.verifyStillPaired()
             }
         }
     }

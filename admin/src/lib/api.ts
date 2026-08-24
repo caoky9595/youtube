@@ -75,17 +75,9 @@ export async function renameLibrary(name: string) {
  * Thu hoi quyen doc cua mot TV. Van giu lien ket voi kho, nen TV do ghep lai la
  * tro ve dung kho nay cung toan bo video.
  */
-export async function unpairDevice(deviceId: string) {
-  const { error } = await sb().rpc('unpair_device', {
-    p_admin_token: getAdminToken(),
-    p_device_id: deviceId,
-  })
-  if (error) rethrow(error)
-}
-
 /**
- * Bo han TV khoi kho. Khac unpairDevice: sau khi goi, TV do ghep lai se tao kho
- * MOI rong chu khong tro ve kho nay.
+ * Bo han TV khoi kho VA xoa sach video cua kho do. Day la duong DUY NHAT de
+ * cat mot TV khoi kho.
  */
 export async function forgetDevice(deviceId: string) {
   const { error } = await sb().rpc('forget_device', {

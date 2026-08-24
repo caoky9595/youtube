@@ -376,21 +376,14 @@ quyền. Lấy quyền như sau:
 Máy mới nhận đúng token của kho đang dùng — không tạo kho mới, không mất video
 nào.
 
-### Ngắt một TV, hoặc bỏ hẳn nó khỏi kho
+### Bỏ một TV khỏi kho
 
-Tab **TV đã ghép** có hai hành động khác nhau:
+Tab **TV đã ghép** có hai hành động, tác dụng khác hẳn nhau:
 
 | | Tác dụng |
 |---|---|
-| **Thu hồi quyền** | TV đó thôi xem được. Trong khoảng 15 giây app tự phát hiện, **tự chuyển sang mục Kết nối và hiện mã mới**. **Vẫn giữ liên kết với kho** — nối lại là về đúng kho này cùng toàn bộ video. |
-| **Bỏ khỏi kho** | Cắt hẳn liên kết. TV đó ghép lại sẽ tạo **kho mới rỗng**. Dùng khi thanh lý hoặc cho TV đi. |
-| **Ngừng quản lý trên máy này** | Chỉ máy/trình duyệt đang dùng thôi quản lý kho. **TV không bị ảnh hưởng gì**, vẫn xem đầy đủ. |
-
-Cả ba đều **không xoá** video trong kho.
-
-**Nối lại một TV vừa bị thu hồi:** dòng thiết bị đó hiện nhãn *đã bị thu hồi*
-kèm nút **Kết nối lại**. Bấm nút đó → nhập mã đang hiện trên TV → TV về đúng kho
-cũ, video còn nguyên.
+| **Bỏ khỏi kho** | TV đó thôi xem được, trong khoảng 8 giây tự chuyển sang mục Kết nối và hiện mã mới. **Xoá luôn toàn bộ video trong kho — không khôi phục được.** Ghép lại sau đó là một kho trống. Dùng khi cho TV đi, thanh lý, hoặc muốn làm lại từ đầu. |
+| **Ngừng quản lý trên máy này** | Chỉ máy/trình duyệt đang dùng thôi quản lý kho. **TV không bị ảnh hưởng gì**, vẫn xem đầy đủ, **không xoá** video nào. |
 
 ---
 
@@ -461,9 +454,9 @@ trình duyệt phải được cấp quyền một lần. Nhập lại đúng m�
 được (một mã dùng cho nhiều máy). TV đã ghép rồi thì lấy mã ở **Kết nối → Lấy mã
 để thêm máy quản trị**.
 
-**TV đã ghép rồi mà lại hiện màn hình nhập mã** — thiết bị đã bị **Thu hồi
-quyền** từ trang quản trị, hoặc app vừa bị xoá dữ liệu. Bên admin bấm **Kết nối
-lại** rồi nhập mã đang hiện trên TV; video trong kho không mất.
+**TV đã ghép rồi mà lại hiện màn hình nhập mã** — thiết bị đã bị **Bỏ khỏi
+kho** từ trang quản trị (video trong kho đó đã bị xoá), hoặc app vừa bị xoá dữ
+liệu. Ghép lại bằng mã đang hiện trên TV như bình thường.
 
 Nếu là do **mất mạng** thì app không báo như vậy: nó giữ nguyên trạng thái đã
 ghép và hiện *"Không tải được danh sách"* kèm nút **Thử lại** ở Trang chủ. Mất

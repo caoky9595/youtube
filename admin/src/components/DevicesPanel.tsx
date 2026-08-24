@@ -9,14 +9,11 @@ export function DevicesPanel({
   library,
   onChanged,
   onAddDevice,
-  onReconnect,
   onForget,
 }: {
   library: Library
   onChanged: () => void
   onAddDevice: () => void
-  /** Mo man nhap ma de noi lai mot TV vua bi thu hoi quyen. */
-  onReconnect: () => void
   /** Máy này thôi không quản lý kho nữa. TV không bị ảnh hưởng gì. */
   onForget: () => void
 }) {
@@ -76,53 +73,22 @@ export function DevicesPanel({
               className="flex flex-wrap items-center gap-3 rounded-lg bg-yt-bg px-3 py-2 text-sm"
             >
               <span className="font-medium">{d.name}</span>
-              {d.paired ? (
-                <span className="rounded-full bg-emerald-600/20 px-2 py-0.5 text-xs text-emerald-300">
-                  đang xem được
-                </span>
-              ) : (
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
-                  đã bị thu hồi
-                </span>
-              )}
               <span className="text-xs text-yt-dim">
                 hoạt động lần cuối {relative(d.last_seen_at)}
               </span>
 
               <span className="ml-auto flex gap-2">
-                {!d.paired && (
-                  <Button size="sm" variant="primary" onClick={onReconnect}>
-                    Kết nối lại
-                  </Button>
-                )}
-                {d.paired && (
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => {
-                      if (
-                        !confirm(
-                          `Thu hồi quyền của “${d.name}”?\n\nTV đó sẽ KHÔNG xem được video nữa. Video trong kho vẫn còn nguyên: muốn nối lại thì trên TV vào mục Kết nối lấy mã mới, rồi bấm “Kết nối lại” ở đây.\n\nChỉ muốn máy này thôi quản lý kho, TV vẫn xem bình thường? Dùng “Ngừng quản lý trên máy này” ở dưới.`,
-                        )
-                      )
-                        return
-                      run(() => api.unpairDevice(d.id), `Đã thu hồi quyền của ${d.name}`)
-                    }}
-                  >
-                    Thu hồi quyền
-                  </Button>
-                )}
                 <Button
                   size="sm"
                   variant="danger"
                   onClick={() => {
                     if (
                       !confirm(
-                        `Bỏ hẳn “${d.name}” khỏi kho?\n\nMạnh hơn Thu hồi quyền: TV đó ghép lại sẽ tạo kho mới rỗng, không về kho này nữa. Video trong kho không bị xoá.`,
+                        `Bỏ hẳn “${d.name}” khỏi kho?\n\nTV đó sẽ KHÔNG xem được video nữa và hiện lại mã kết nối mới. TOÀN BỘ VIDEO trong kho này sẽ bị XOÁ — không khôi phục được. Ghép lại sau đó sẽ là một kho trống.`,
                       )
                     )
                       return
-                    run(() => api.forgetDevice(d.id), 'Đã bỏ thiết bị khỏi kho')
+                    run(() => api.forgetDevice(d.id), `Đã bỏ ${d.name} khỏi kho và xoá video`)
                   }}
                 >
                   Bỏ khỏi kho
