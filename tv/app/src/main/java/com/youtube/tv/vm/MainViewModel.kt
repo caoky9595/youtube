@@ -26,6 +26,12 @@ private const val SEARCH_DEBOUNCE_MS = 300L
  */
 private const val PAIR_POLL_MS = 2_500L
 
+/**
+ * Nhip tu lam moi trang chu, de video vua them ben trang quan tri hien ra ma
+ * khong phai thoat app mo lai.
+ */
+const val HOME_REFRESH_MS = 15_000L
+
 sealed interface HomeState {
     data object Loading : HomeState
     data class Ready(val data: HomeData) : HomeState
@@ -280,16 +286,24 @@ class MainViewModel : ViewModel() {
 
     /* ----------------------------- du lieu ---------------------------- */
 
-    fun refresh() {
+    /**
+     * Tai lai trang chu.
+     *
+     * @param quiet dung cho viec tu lam moi nen: khong nhay sang trang thai
+     *        "Đang tải…" va that bai thi im lang, giu nguyen danh sach dang
+     *        hien. Neu khong co co nay thi cu moi 15 giay man hinh lai nhay
+     *        mot cai, va mot cu mang chap chon la xoa sach danh sach dang xem.
+     */
+    fun refresh(quiet: Boolean = false) {
         if (YouTubeApp.tvToken == null) return
-        _home.value = HomeState.Loading
+        if (!quiet) _home.value = HomeState.Loading
         viewModelScope.launch {
             try {
                 _home.value = HomeState.Ready(YouTubeApi.home())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _home.value = HomeState.Error(friendlyMessage(e))
+                if (!quiet) _home.value = HomeState.Error(friendlyMessage(e))
             }
         }
         viewModelScope.launch { _progress.value = YouTubeApi.progress() }

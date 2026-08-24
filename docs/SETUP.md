@@ -427,9 +427,14 @@ mạng không bao giờ làm mất `tv_token`.
 **Thẻ video trên TV không có badge thời lượng** — bình thường với video vừa thêm.
 Phát nó một lần rồi quay lại trang chủ là có.
 
-**Video có trong trang quản trị nhưng không thấy trên TV** — kiểm tra: video đang
-bị *Ẩn*? Hàng chứa nó đang bị *Ẩn*? Hàng đó rỗng (hàng rỗng không hiện)? Hoặc app
-TV đang giữ dữ liệu cũ — thoát app rồi mở lại.
+**Video có trong trang quản trị nhưng không thấy trên TV** — trang chủ TV tự làm
+mới mỗi 15 giây khi đang mở, nên chờ vài giây là thấy. Nếu vẫn không:
+kiểm tra video đang bị *Ẩn*? Hàng chứa nó đang bị *Ẩn*? Hàng đó rỗng (hàng rỗng
+không hiện)?
+
+**Vừa ghép ở trang quản trị mà TV vẫn báo "Chưa kết nối"** — TV chỉ tự hỏi trạng
+thái ghép khi đang mở mục **Kết nối**. Nếu bạn đã rời sang Trang chủ trước khi
+nhập mã thì bấm **Kiểm tra lại** ở Trang chủ.
 
 **Một video báo "Chủ kênh không cho phép phát ngoài YouTube"** — video đó bị tắt
 nhúng. Không có cách nào vượt; chọn video khác. Thường thì lúc thêm bằng link đã

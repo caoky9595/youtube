@@ -15,7 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.youtube.tv.data.Video
@@ -30,6 +33,7 @@ import com.youtube.tv.ui.components.NavRail
 import com.youtube.tv.ui.theme.YtBg
 import com.youtube.tv.ui.theme.YouTubeTheme
 import com.youtube.tv.vm.HomeState
+import com.youtube.tv.vm.HOME_REFRESH_MS
 import com.youtube.tv.vm.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -110,6 +114,23 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
         if (paired && dest == NavDest.Connect) dest = NavDest.Home
     }
 
+    // Trang chu tu lam moi, de video vua them ben trang quan tri hien ra ma khong
+    // phai thoat app mo lai. Chi chay khi dang o Trang chu va khong phat video —
+    // dang xem thi khong can, va cung khong nen goi mang vo ich.
+    LaunchedEffect(screen, dest, paired) {
+        if (screen is Screen.Browse && dest == NavDest.Home && paired) {
+            while (true) {
+                delay(HOME_REFRESH_MS)
+                vm.refresh(quiet = true)
+            }
+        }
+    }
+
+    // App tro lai foreground (bam Home cua TV roi mo lai) thi lam moi luon
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (paired) vm.refresh(quiet = true)
+    }
+
     when (val s = screen) {
         is Screen.Play -> PlayerScreen(
             video = s.video,
@@ -121,7 +142,10 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
             },
             onProgress = { seconds, duration -> vm.saveProgress(s.video, seconds, duration) },
             onDuration = { seconds -> vm.reportDuration(s.video, seconds) },
-            onBack = { screen = Screen.Browse },
+            onBack = {
+                screen = Screen.Browse
+                vm.refresh(quiet = true) // cap nhat thanh tien do vua xem
+            },
         )
 
         Screen.Browse -> Row(Modifier.fillMaxSize()) {
