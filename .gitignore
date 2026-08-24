@@ -7,9 +7,6 @@ tv/local.properties
 *.jks
 *.keystore
 
-# APK duoc copy vao admin/public de TV tai ve — 1.6MB, khong can trong repo
-admin/public/*.apk
-
 # --- Ket qua build ---
 node_modules/
 dist/
@@ -17,6 +14,9 @@ build/
 .gradle/
 *.apk
 *.aab
+# ...tru APK dat trong admin/public: do la file TV tai ve qua Downloader, phai
+# nam trong repo vi deploy di qua Git. Moi ban ~1.6MB.
+!admin/public/*.apk
 
 # --- Cong cu / he dieu hanh ---
 .DS_Store
