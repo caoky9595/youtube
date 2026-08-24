@@ -7,6 +7,7 @@ import com.youtube.tv.data.HomeData
 import com.youtube.tv.data.PairState
 import com.youtube.tv.data.Video
 import com.youtube.tv.data.YouTubeApi
+import com.youtube.tv.data.friendlyMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -61,7 +62,8 @@ sealed interface PairPhase {
     /** Vua co mot may quan tri nhap ma xong. */
     data object AdminAdded : PairPhase
 
-    data class Failed(val message: String) : PairPhase
+    /** @param canRetry loi tam thoi (mang), nen cho nguoi dung bam thu lai. */
+    data class Failed(val message: String, val canRetry: Boolean = false) : PairPhase
 }
 
 /**
@@ -130,7 +132,17 @@ class MainViewModel : ViewModel() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _pair.value = PairPhase.Failed(e.message ?: "Không kết nối được server")
+                // Khong goi duoc server thi KHONG duoc ket luan la mat ghep.
+                // Mot cu DNS chap chon luc mo app tung lam TV da ghep hien
+                // "Chua ket noi" kem nguyen van loi tieng Anh, va khong co duong
+                // nao thu lai ngoai tat app.
+                if (YouTubeApp.tvToken != null) {
+                    _paired.value = true
+                    _pair.value = PairPhase.Paired
+                    refresh() // Trang chu tu hien loi + nut Thu lai neu van khong duoc
+                } else {
+                    _pair.value = PairPhase.Failed(friendlyMessage(e), canRetry = true)
+                }
             }
         }
     }
@@ -162,7 +174,7 @@ class MainViewModel : ViewModel() {
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _pair.value = PairPhase.Failed(e.message ?: "Không kết nối được server")
+                    _pair.value = PairPhase.Failed(friendlyMessage(e), canRetry = true)
                     return@launch
                 }
                 delay(PAIR_POLL_MS)
@@ -219,7 +231,7 @@ class MainViewModel : ViewModel() {
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _pair.value = PairPhase.Failed(e.message ?: "Không kết nối được server")
+                    _pair.value = PairPhase.Failed(friendlyMessage(e), canRetry = true)
                     return@launch
                 }
                 delay(PAIR_POLL_MS)
@@ -277,7 +289,7 @@ class MainViewModel : ViewModel() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _home.value = HomeState.Error(e.message ?: "Không tải được danh sách")
+                _home.value = HomeState.Error(friendlyMessage(e))
             }
         }
         viewModelScope.launch { _progress.value = YouTubeApi.progress() }
@@ -302,7 +314,7 @@ class MainViewModel : ViewModel() {
                 // man hinh, de len ket qua dung cua lan tim moi hon.
                 throw e
             } catch (e: Exception) {
-                _search.value = SearchState.Error(e.message ?: "Tìm kiếm thất bại")
+                _search.value = SearchState.Error(friendlyMessage(e))
             }
         }
     }

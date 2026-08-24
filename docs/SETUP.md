@@ -420,6 +420,10 @@ máy quản trị**.
 **TV đã ghép rồi mà lại hiện "Chưa kết nối"** — thiết bị đã bị **Ngắt** từ trang
 quản trị, hoặc app vừa bị xoá dữ liệu. Chọn Kết nối và ghép lại.
 
+Nếu là do **mất mạng** thì app không báo như vậy: nó giữ nguyên trạng thái đã
+ghép và hiện *"Không tải được danh sách"* kèm nút **Thử lại** ở Trang chủ. Mất
+mạng không bao giờ làm mất `tv_token`.
+
 **Thẻ video trên TV không có badge thời lượng** — bình thường với video vừa thêm.
 Phát nó một lần rồi quay lại trang chủ là có.
 

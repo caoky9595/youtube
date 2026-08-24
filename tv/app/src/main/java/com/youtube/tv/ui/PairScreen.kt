@@ -47,6 +47,7 @@ fun PairScreen(
     phase: PairPhase,
     adminUrlHint: String?,
     onRequestAdminCode: () -> Unit,
+    onRetry: () -> Unit,
     onDone: () -> Unit,
 ) {
     when (phase) {
@@ -56,6 +57,8 @@ fun PairScreen(
         is PairPhase.Failed -> CenteredMessage(
             title = "Chưa kết nối",
             detail = phase.message,
+            actionLabel = if (phase.canRetry) "Thử lại" else null,
+            onAction = if (phase.canRetry) onRetry else null,
         )
 
         PairPhase.Paired -> Connected(adminUrlHint, onRequestAdminCode)

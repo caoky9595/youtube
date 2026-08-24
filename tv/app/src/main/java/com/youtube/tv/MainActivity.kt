@@ -148,6 +148,7 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
                         phase = pairPhase,
                         adminUrlHint = BuildConfig.ADMIN_URL.ifBlank { null },
                         onRequestAdminCode = vm::showCodeForAdmin,
+                        onRetry = vm::checkPairing,
                         onDone = { dest = NavDest.Home },
                     )
 
@@ -156,6 +157,8 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
                             title = "Chưa kết nối",
                             detail = "Chọn “Kết nối” ở menu bên trái để lấy mã, rồi nhập mã đó vào " +
                                 "trang quản trị. Sau khi kết nối, video sẽ hiện ở đây.",
+                            actionLabel = "Kiểm tra lại",
+                            onAction = vm::checkPairing,
                         )
 
                         else -> when (val h = homeState) {
