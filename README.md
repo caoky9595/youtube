@@ -25,7 +25,7 @@ khẩu: app TV hiện mã, bạn nhập mã đó vào trang quản trị, thế 
 
 | Thư mục     | Là gì                                                                  |
 |-------------|------------------------------------------------------------------------|
-| `supabase/` | 3 file SQL: schema, token + RLS, và các RPC. Chạy trong SQL Editor.    |
+| `supabase/` | SQL. Dán `all.sql` một lần vào SQL Editor là xong.                     |
 | `admin/`    | Web quản trị (React 19 + Vite + Tailwind 4). Deploy đâu cũng được.     |
 | `tv/`       | App Android TV (Kotlin, Compose for TV). Sideload APK lên Sony Bravia. |
 | `docs/`     | Hướng dẫn cài đặt chi tiết → [docs/SETUP.md](docs/SETUP.md).           |
@@ -103,7 +103,7 @@ công khai vẫn an toàn: không có token thì không thấy kho nào.
 ## Chạy nhanh
 
 ```bash
-# 1. Supabase: chạy lần lượt supabase/01_schema.sql, 02_rls.sql, 03_rpc.sql
+# 1. Supabase: dán supabase/all.sql vào SQL Editor, bấm Run
 
 # 2. Trang quản trị — build rồi kéo thả dist/ vào app.netlify.com/drop
 cd admin && cp .env.example .env    # điền 2 biến Supabase

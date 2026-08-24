@@ -9,17 +9,32 @@ Không có bước tạo tài khoản: quyền truy cập đi bằng token, cấ
 
 ## 1. Supabase
 
-1. Tạo project mới ở [supabase.com](https://supabase.com) (bản miễn phí là đủ).
-2. Vào **SQL Editor**, chạy **lần lượt** ba file, đúng thứ tự:
+1. Tạo project mới ở [supabase.com](https://supabase.com) → **New project**.
+   Bản miễn phí là đủ. Chọn region gần (Singapore), đặt mật khẩu database rồi
+   chờ khoảng một phút.
 
-   | Thứ tự | File                     | Tạo ra                                     |
-   |--------|--------------------------|--------------------------------------------|
-   | 1      | `supabase/01_schema.sql` | Bảng, index, extension, hàm sinh token/mã  |
-   | 2      | `supabase/02_rls.sql`    | Hàm đọc token từ header + RLS + GRANT      |
-   | 3      | `supabase/03_rpc.sql`    | RPC ghép máy, đọc dữ liệu, sửa dữ liệu     |
+2. Vào **SQL Editor** (biểu tượng `>_` ở cột bên trái) → **New query**, dán
+   **toàn bộ** nội dung `supabase/all.sql` vào rồi bấm **Run**.
 
-   Thứ tự quan trọng: `02` cấp quyền trên bảng của `01`, và `03` chứa GRANT cho
-   các hàm nên phải chạy sau cùng.
+   ```bash
+   # macOS: copy thẳng vào clipboard
+   pbcopy < supabase/all.sql
+   ```
+
+   File đó là ba file gốc nối lại, chạy một lần là xong:
+
+   | File                     | Tạo ra                                     |
+   |--------------------------|--------------------------------------------|
+   | `supabase/01_schema.sql` | Bảng, index, extension, hàm sinh token/mã  |
+   | `supabase/02_rls.sql`    | Hàm đọc token từ header + RLS + GRANT      |
+   | `supabase/03_rpc.sql`    | RPC ghép máy, đọc dữ liệu, sửa dữ liệu     |
+
+   Muốn chạy riêng từng file cũng được, nhưng **phải đúng thứ tự trên**: `02`
+   cấp quyền trên bảng của `01`, và `03` chứa GRANT cho các hàm của chính nó nên
+   phải sau cùng. (Sửa ba file kia thì sinh lại `all.sql` bằng
+   `cd supabase && ./build-all.sh`.)
+
+   Chạy xong phải thấy *Success. No rows returned* — không có dòng đỏ nào.
 
 3. Vào **Project Settings → API**, ghi lại hai giá trị:
    - **Project URL** → `https://xxxxxxxxxxxx.supabase.co`
