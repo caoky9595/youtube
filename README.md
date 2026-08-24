@@ -3,12 +3,12 @@
 Một "YouTube riêng" cho TV: app Android TV giao diện giống app YouTube trên TV,
 nhưng **chỉ hiện các video do bạn thêm vào**. Kèm một trang web quản trị.
 
-TV và trang quản trị nối với nhau bằng **mã 6 ký tự**, không có tài khoản/mật
+TV và trang quản trị nối với nhau bằng **mã 6 chữ số**, không có tài khoản/mật
 khẩu: app TV hiện mã, bạn nhập mã đó vào trang quản trị, thế là xong.
 
 ```
 ┌──────────────────┐                          ┌──────────────────┐
-│  tv/             │   ① hiện mã "KGDR2P"     │  admin/          │
+│  tv/             │   ① hiện mã "042871"     │  admin/          │
 │  App Android TV  │ ───────────────────────► │  Web quản trị    │
 │  Kotlin/Compose  │                          │  React + Vite    │
 └────────┬─────────┘   ② nhập mã              └────────┬─────────┘
@@ -39,7 +39,7 @@ mới.
 
 ## Cách ghép máy
 
-1. Trên TV, chọn **Kết nối** ở menu bên trái. App hiện mã 6 ký tự, hiệu lực 15
+1. Trên TV, chọn **Kết nối** ở menu bên trái. App hiện mã 6 chữ số, hiệu lực 15
    phút, **hết hạn thì tự đổi mã mới** nên cứ để màn hình đó bao lâu cũng được.
 2. Mở trang quản trị, nhập mã. Trang admin nhận `admin_token`, TV nhận
    `tv_token`.

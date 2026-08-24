@@ -341,7 +341,7 @@ App xuất hiện ở hàng ứng dụng trên màn hình chính của TV, nhờ
 ## 5. Ghép TV với trang quản trị
 
 1. Mở app trên TV. Trang chủ hiện "Chưa kết nối" — đó là bình thường.
-2. Chọn **Kết nối** ở menu bên trái (mục có dấu đỏ). Màn hình hiện mã 6 ký tự.
+2. Chọn **Kết nối** ở menu bên trái (mục có dấu đỏ). Màn hình hiện mã 6 chữ số.
 3. Mở trang quản trị, nhập mã đó.
 4. TV tự chuyển sang trang chủ.
 
@@ -370,7 +370,7 @@ quyền. Lấy quyền như sau:
 
 1. Trên TV, chọn **Kết nối**. Vì TV đã ghép rồi nên nó hiện *Đã kết nối* kèm nút
    **Lấy mã để thêm máy quản trị**.
-2. Bấm nút đó → TV hiện mã 6 ký tự.
+2. Bấm nút đó → TV hiện mã 6 chữ số.
 3. Mở trang quản trị trên máy mới, nhập mã.
 
 Máy mới nhận đúng token của kho đang dùng — không tạo kho mới, không mất video
@@ -471,9 +471,10 @@ mới mỗi 15 giây khi đang mở, nên chờ vài giây là thấy. Nếu v�
 kiểm tra video đang bị *Ẩn*? Hàng chứa nó đang bị *Ẩn*? Hàng đó rỗng (hàng rỗng
 không hiện)?
 
-**Vừa ghép ở trang quản trị mà TV vẫn báo "Chưa kết nối"** — TV chỉ tự hỏi trạng
-thái ghép khi đang mở mục **Kết nối**. Nếu bạn đã rời sang Trang chủ trước khi
-nhập mã thì bấm **Kiểm tra lại** ở Trang chủ.
+**Vừa ghép ở trang quản trị mà TV vẫn báo "Chưa kết nối"** — TV tự dò trạng thái
+ghép ngầm mỗi ~8 giây, bất kể đang ở màn hình nào (Trang chủ, Tìm kiếm, hay Kết
+nối), nên chờ chút là tự chuyển. Không muốn chờ thì bấm **Kiểm tra lại** ở
+Trang chủ để hỏi ngay lập tức.
 
 **Một video báo "Chủ kênh không cho phép phát ngoài YouTube"** — video đó bị tắt
 nhúng. Không có cách nào vượt; chọn video khác. Thường thì lúc thêm bằng link đã
