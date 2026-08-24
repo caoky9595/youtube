@@ -15,8 +15,12 @@ type Props = {
   onSharedConsumed?: () => void
 }
 
+/** Ten hang tu tao khi kho chua co hang nao. */
+const DEFAULT_SHELF = 'Video của tôi'
+
 export function AddTab({ shelves, onChanged, sharedUrl, onSharedConsumed }: Props) {
-  const [shelfId, setShelfId] = useState<string | null>(null)
+  const [shelfId, setShelfId] = useState<string | null>(shelves[0]?.id ?? null)
+  const [newShelf, setNewShelf] = useState<string | null>(null)
   const [existing, setExisting] = useState<Set<string>>(new Set())
 
   const [input, setInput] = useState('')
@@ -30,6 +34,12 @@ export function AddTab({ shelves, onChanged, sharedUrl, onSharedConsumed }: Prop
   useEffect(() => {
     api.getExistingYoutubeIds().then(setExisting).catch(() => {})
   }, [])
+
+  // Hang mac dinh la hang dau tien. Video luon phai thuoc mot hang de no hien
+  // duoi dung ten hang tren trang chu TV, chu khong chi nam trong "Mới thêm".
+  useEffect(() => {
+    setShelfId((cur) => (cur && shelves.some((s) => s.id === cur) ? cur : shelves[0]?.id ?? null))
+  }, [shelves])
 
   // App YouTube tren Android chia se sang -> dien san vao o dan
   useEffect(() => {
@@ -53,16 +63,42 @@ export function AddTab({ shelves, onChanged, sharedUrl, onSharedConsumed }: Prop
   const alreadyIn = ids.filter((id) => existing.has(id))
 
   async function commit(items: YtResult[], label: string) {
+    // Kho chua co hang nao thi tao mot hang mac dinh, de video vua them hien
+    // ngay duoi mot ten hang tu te tren trang chu TV.
+    let target = shelfId
+    let targetName = shelves.find((s) => s.id === shelfId)?.title
+    let created = false
+    if (!target) {
+      const shelf = await api.createShelf(DEFAULT_SHELF)
+      target = shelf.id
+      targetName = shelf.title
+      created = true
+      setShelfId(shelf.id)
+    }
+
     const added: api.VideoWithShelves[] = []
     for (const item of items) {
-      const row = await api.addVideo(item, shelfId)
-      added.push({ ...row, shelfIds: shelfId ? [shelfId] : [] })
+      const row = await api.addVideo(item, target)
+      added.push({ ...row, shelfIds: [target] })
     }
     setExisting((s) => new Set([...s, ...items.map((i) => i.youtubeId)]))
     setJustAdded((prev) => [...added, ...(prev ?? [])].slice(0, 12))
-    const where = shelves.find((s) => s.id === shelfId)
-    toast(`${label}${where ? ` vào ${where.title}` : ''}`)
+    toast(
+      `${label} vào ${targetName}` + (created ? ` (đã tạo hàng “${targetName}”)` : ''),
+    )
     onChanged()
+  }
+
+  async function createAndSelect(title: string) {
+    try {
+      const shelf = await api.createShelf(title)
+      setShelfId(shelf.id)
+      setNewShelf(null)
+      toast(`Đã tạo hàng “${shelf.title}”`)
+      onChanged()
+    } catch (err) {
+      toast(friendlyError(err), 'err')
+    }
   }
 
   /* ------------------------------ dan link ------------------------------ */
@@ -118,10 +154,53 @@ export function AddTab({ shelves, onChanged, sharedUrl, onSharedConsumed }: Prop
   return (
     <div className="flex flex-col gap-8">
       <div className="flex max-w-4xl flex-wrap items-center gap-3 rounded-xl bg-yt-panel px-4 py-3">
-        <span className="text-sm text-yt-dim">Video thêm vào sẽ nằm ở hàng:</span>
-        <ShelfPicker shelves={shelves} value={shelfId} onChange={setShelfId} />
+        <span className="text-sm text-yt-dim">Thêm vào hàng:</span>
+
+        {newShelf === null ? (
+          <>
+            {shelves.length > 0 ? (
+              <ShelfPicker
+                shelves={shelves}
+                value={shelfId}
+                onChange={setShelfId}
+                allowNone={false}
+              />
+            ) : (
+              <span className="text-sm text-yt-text">
+                {DEFAULT_SHELF}{' '}
+                <span className="text-xs text-yt-dim">(sẽ tự tạo)</span>
+              </span>
+            )}
+            <Button size="sm" onClick={() => setNewShelf('')}>
+              + Hàng mới
+            </Button>
+          </>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (newShelf.trim()) createAndSelect(newShelf.trim())
+            }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <input
+              autoFocus
+              value={newShelf}
+              onChange={(e) => setNewShelf(e.target.value)}
+              placeholder="Tên hàng, ví dụ: Thiếu nhi"
+              className="rounded-full border border-yt-border bg-yt-bg px-3 py-1.5 text-sm outline-none focus:border-zinc-500"
+            />
+            <Button type="submit" size="sm" variant="primary" disabled={!newShelf.trim()}>
+              Tạo
+            </Button>
+            <Button type="button" size="sm" onClick={() => setNewShelf(null)}>
+              Huỷ
+            </Button>
+          </form>
+        )}
+
         <span className="text-xs text-yt-dim">
-          (“Mới thêm” trên TV luôn tự cập nhật, không cần gán hàng)
+          Hàng này hiện trên trang chủ TV. Video mới cũng luôn có trong “Mới thêm”.
         </span>
       </div>
 

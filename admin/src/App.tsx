@@ -60,13 +60,12 @@ export default function App() {
       setPhase({ kind: 'ready', library })
       await loadContent()
     } catch (err) {
-      const message = friendlyError(err)
-      // Token sai/da bi thu hoi thi quay ve man nhap ma, khong bao loi cung
-      if (/token/i.test(message)) {
-        api.forgetLibrary()
+      // Nhan dien bang KIEU loi, khong do chu trong thong bao: thong bao la van
+      // ban cho nguoi doc, doi cau chu mot cai la logic vo hieu ngay.
+      if (err instanceof api.TokenRejected) {
         setPhase({ kind: 'pairing' })
       } else {
-        setPhase({ kind: 'error', message })
+        setPhase({ kind: 'error', message: friendlyError(err) })
       }
     }
   }, [loadContent])
@@ -74,6 +73,18 @@ export default function App() {
   useEffect(() => {
     openLibrary()
   }, [openLibrary])
+
+  // Server tu choi token (bi thu hoi, hoac kho khong con) -> ve man nhap ma
+  // thay vi de nguoi dung ket lai voi mot toast loi.
+  useEffect(
+    () =>
+      api.onTokenRejected(() => {
+        setVideos(null)
+        setShelves([])
+        setPhase({ kind: 'pairing' })
+      }),
+    [],
+  )
 
   // Co link chia se thi nhay san sang tab Them video
   useEffect(() => {
