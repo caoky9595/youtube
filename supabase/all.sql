@@ -517,7 +517,12 @@ begin
   return jsonb_build_object(
     'paired', v_device.library_id is not null,
     'code', v_code.code,
-    'expires_at', v_code.expires_at
+    'expires_at', v_code.expires_at,
+    -- So giay con lai, tinh o server. App TV phai dung so nay chu khong tu lay
+    -- expires_at tru cho gio cua chinh no: dong ho TV lech la chuyen thuong
+    -- (chua set mui gio, khong co mang luc boot). Dong ho cham thi dem nguoc
+    -- sai, dong ho nhanh thi tuong ma het han va xin ma moi lien tuc.
+    'expires_in', greatest(0, extract(epoch from (v_code.expires_at - now()))::int)
   );
 end;
 $$;

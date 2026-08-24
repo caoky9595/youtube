@@ -52,6 +52,11 @@ data class PairState(
     val paired: Boolean = false,
     val code: String? = null,
     @SerialName("expires_at") val expiresAt: String? = null,
+    /**
+     * So giay con lai, do SERVER tinh. Dung cai nay chu dung tu lay expiresAt
+     * tru gio cua may: dong ho TV lech la chuyen thuong.
+     */
+    @SerialName("expires_in") val expiresIn: Int? = null,
     @SerialName("tv_token") val tvToken: String? = null,
     @SerialName("unknown_device") val unknownDevice: Boolean = false,
 )

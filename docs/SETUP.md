@@ -42,6 +42,11 @@ Hai đường. Đường B ít bước hơn nếu bạn deploy bằng Vercel.
 
    Chạy xong phải thấy *Success. No rows returned* — không có dòng đỏ nào.
 
+   **Chạy lại `all.sql` lúc nào cũng được.** Nó dùng `create table if not exists`
+   và `create or replace function`, nên chạy lại trên database đã có dữ liệu thì
+   video, hàng và các token đã cấp đều không mất gì. Mỗi lần cập nhật code có
+   sửa SQL thì cứ dán lại file này.
+
 3. Vào **Project Settings → API**, ghi lại hai giá trị:
    - **Project URL** → `https://xxxxxxxxxxxx.supabase.co`
    - **anon public** key → chuỗi `eyJ...` dài, hoặc `sb_publishable_...` với

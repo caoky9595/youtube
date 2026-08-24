@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.youtube.tv.YouTubeApp
 import com.youtube.tv.data.HomeData
+import com.youtube.tv.data.PairState
 import com.youtube.tv.data.Video
 import com.youtube.tv.data.YouTubeApi
 import kotlinx.coroutines.CancellationException
@@ -13,8 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.format.DateTimeParseException
 
 /** Cho nguoi dung go xong truoc khi goi mang. */
 private const val SEARCH_DEBOUNCE_MS = 300L
@@ -159,7 +158,7 @@ class MainViewModel : ViewModel() {
                         _pair.value = PairPhase.Failed("Server không trả về mã")
                         return@launch
                     }
-                    _pair.value = PairPhase.ShowingCode(code, secondsLeft(state.expiresAt))
+                    _pair.value = PairPhase.ShowingCode(code, secondsLeft(state))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -195,7 +194,7 @@ class MainViewModel : ViewModel() {
                         }
                         _pair.value = PairPhase.ShowingCode(
                             code = code,
-                            secondsLeft = secondsLeft(state.expiresAt),
+                            secondsLeft = secondsLeft(state),
                             forAdmin = true,
                         )
                     } else {
@@ -253,16 +252,19 @@ class MainViewModel : ViewModel() {
         refresh()
     }
 
-    /** Server tra expires_at dang ISO-8601. Loi parse thi coi nhu con 15 phut. */
-    private fun secondsLeft(iso: String?): Int {
-        val deadline = try {
-            if (iso == null) System.currentTimeMillis() + 15 * 60_000L
-            else Instant.parse(iso.replace(" ", "T")).toEpochMilli()
-        } catch (_: DateTimeParseException) {
-            System.currentTimeMillis() + 15 * 60_000L
-        }
-        return ((deadline - System.currentTimeMillis()) / 1000).toInt().coerceAtLeast(0)
-    }
+    /**
+     * So giay con lai cua ma.
+     *
+     * Lay tu truong expires_in do server tinh. KHONG tu lay expires_at tru cho
+     * gio cua may: dong ho TV lech la chuyen thuong (chua set mui gio, khong co
+     * mang luc boot). Dong ho cham thi dem nguoc ra so vo ly, dong ho nhanh thi
+     * app tuong ma het han va xin ma moi lien tuc trong khi nguoi dung dang doc
+     * ma cu tren man hinh.
+     *
+     * Server cu khong tra expires_in thi coi nhu con du 15 phut.
+     */
+    private fun secondsLeft(state: PairState): Int =
+        state.expiresIn?.coerceAtLeast(0) ?: (15 * 60)
 
     /* ----------------------------- du lieu ---------------------------- */
 
