@@ -8,8 +8,22 @@
  */
 const NETWORK_ERRORS = /load failed|failed to fetch|networkerror|network request failed/i
 
+/**
+ * Loi tra ve tu supabase-js (PostgrestError) khong phai instanceof Error —
+ * chi la mot object thuong co truong message. "err instanceof Error" luon
+ * false voi loai nay nen roi vao String(err), ra dung chu "[object Object]"
+ * thay vi thong bao tieng Viet — vi du nhap sai ma se hien "[object Object]"
+ * thay vi "Mã không đúng".
+ */
+function messageOf(err: unknown): string {
+  if (typeof err === 'object' && err !== null && typeof (err as { message?: unknown }).message === 'string') {
+    return (err as { message: string }).message
+  }
+  return String(err)
+}
+
 export function friendlyError(err: unknown): string {
-  const raw = err instanceof Error ? err.message : String(err)
+  const raw = messageOf(err)
   if (!NETWORK_ERRORS.test(raw)) return raw
 
   const url = import.meta.env.VITE_SUPABASE_URL ?? '(chưa cấu hình)'
