@@ -27,6 +27,6 @@ dist-ssr
 .env
 .env.local
 
-# APK duoc copy vao day de host cho TV tai ve — khong commit (14MB)
-public/*.apk
+# APK trong public/ CO duoc commit: deploy di qua Git nen no phai nam trong repo
+# moi len duoc host cho TV tai ve. Xem ghi chu o .gitignore goc.
 .vercel
