@@ -9,6 +9,12 @@ Không có bước tạo tài khoản: quyền truy cập đi bằng token, cấ
 
 ## 1. Supabase
 
+Hai đường. Đường B ít bước hơn nếu bạn deploy bằng Vercel.
+
+### Đường A — tạo trực tiếp ở supabase.com
+
+
+
 1. Tạo project mới ở [supabase.com](https://supabase.com) → **New project**.
    Bản miễn phí là đủ. Chọn region gần (Singapore), đặt mật khẩu database rồi
    chờ khoảng một phút.
@@ -38,13 +44,58 @@ Không có bước tạo tài khoản: quyền truy cập đi bằng token, cấ
 
 3. Vào **Project Settings → API**, ghi lại hai giá trị:
    - **Project URL** → `https://xxxxxxxxxxxx.supabase.co`
-   - **anon public key** → chuỗi `eyJ...` dài
+   - **anon public** key → chuỗi `eyJ...` dài, hoặc `sb_publishable_...` với
+     project mới
+
+   Đừng lấy **service_role** — khoá đó bỏ qua RLS. `vite.config.ts` sẽ chặn build
+   nếu bạn dán nhầm, nhưng tốt nhất là không nhầm.
 
 Khoá `anon` là khoá công khai và **tự nó không mở được gì**: mọi truy vấn còn
 phải mang header `X-YouTube-Token` mới thấy dữ liệu. Nên nhúng nó vào APK và vào
 bundle trang admin là an toàn.
 
 Không cần bật/tắt gì trong **Authentication** — phần đó không dùng.
+
+---
+
+### Đường B — tạo từ trong Vercel (Marketplace)
+
+Vercel có Supabase trong Marketplace: nó tạo project và **tự khai biến môi
+trường** vào Vercel, khỏi phải copy tay.
+
+1. Vercel → project → tab **Storage** (hoặc **Integrations**) → **Create New →
+   Supabase** → chọn plan Free → **Create**.
+2. Nó tự thêm vào project các biến: `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+   `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`.
+3. Bấm **Open in Supabase** để vào dashboard, rồi chạy `supabase/all.sql` trong
+   **SQL Editor** như bước 2 của đường A.
+4. Deploy lại để nhúng biến vào bundle:
+   ```bash
+   cd admin && vercel deploy --prod --yes
+   ```
+
+`vite.config.ts` đã đọc được các tên biến do integration khai (`SUPABASE_URL`,
+`SUPABASE_ANON_KEY`, và cả `NEXT_PUBLIC_*`), nên không phải thêm biến `VITE_*`
+nào nữa.
+
+> **Vì sao không nới `envPrefix` sang `SUPABASE_` cho tiện:** integration khai cả
+> `SUPABASE_SERVICE_ROLE_KEY` cạnh anon key. Nới tiền tố là nhúng luôn khoá đó
+> vào bundle JS công khai — mà `service_role` **bỏ qua toàn bộ RLS**, ai mở
+> devtools cũng xoá sạch được dữ liệu. Nên `vite.config.ts` map tường minh đúng
+> hai biến cần, và **chặn build** nếu giá trị đưa vào là `sb_secret_...` hoặc
+> JWT có `role` khác `anon`.
+
+### Lấy hai giá trị cho app TV
+
+App TV cần chúng trong `tv/local.properties` (integration không tự điền hộ chỗ
+này). Đi đường B thì kéo về từ Vercel:
+
+```bash
+cd admin && vercel env pull .env.local     # rồi đọc SUPABASE_URL / SUPABASE_ANON_KEY
+```
+
+`.env.local` sẽ chứa cả `SUPABASE_SERVICE_ROLE_KEY` — nó đã nằm trong
+`.gitignore` và `.vercelignore`, nhưng đừng dán nội dung file đó đi đâu.
 
 ---
 
