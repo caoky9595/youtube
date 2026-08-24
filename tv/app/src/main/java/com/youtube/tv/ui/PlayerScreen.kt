@@ -189,6 +189,7 @@ fun PlayerScreen(
                     return@onKeyEvent when (event.key) {
                         Key.DirectionUp, Key.DirectionDown -> {
                             suggestionsVisible = false
+                            touch() // khong thi thanh dieu khien co the van dang an tu truoc do
                             true
                         }
                         else -> false
@@ -229,7 +230,12 @@ fun PlayerScreen(
                     // chu. Remote D-pad thuong khong co phim "Next" rieng, day
                     // la duong thay the luon co san.
                     Key.DirectionDown -> {
-                        if (canSuggest) suggestionsVisible = true else touch()
+                        if (canSuggest) {
+                            suggestionsVisible = true
+                            touch() // dam bao khi dong bang lai thi thanh dieu khien cung hien theo
+                        } else {
+                            touch()
+                        }
                         true
                     }
 
@@ -432,6 +438,7 @@ fun PlayerScreen(
                 currentIndex = queueIndex,
                 onSelect = { index ->
                     suggestionsVisible = false
+                    touch()
                     onJumpTo(index)
                 },
             )
@@ -440,7 +447,12 @@ fun PlayerScreen(
 
     // Nut Back cua remote: dong bang goi y neu dang mo, khong thi moi thoat han
     androidx.activity.compose.BackHandler {
-        if (suggestionsVisible) suggestionsVisible = false else onBack()
+        if (suggestionsVisible) {
+            suggestionsVisible = false
+            touch()
+        } else {
+            onBack()
+        }
     }
 }
 
