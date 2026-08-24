@@ -47,8 +47,10 @@ begin
         last_seen_at = now()
   returning * into v_device;
 
-  -- Da ghep va khong ai doi ma thi tra ve luon trang thai
-  if v_device.library_id is not null and not p_force_code then
+  -- Da ghep va khong ai doi ma thi tra ve luon trang thai.
+  -- Xet tv_token chu khong xet library_id: thiet bi bi Ngat van giu library_id
+  -- (de ghep lai tro ve dung kho cu) nhung phai duoc coi la CHUA ghep.
+  if v_device.tv_token is not null and not p_force_code then
     return jsonb_build_object(
       'paired', true,
       'tv_token', v_device.tv_token,
@@ -81,7 +83,7 @@ begin
   end if;
 
   return jsonb_build_object(
-    'paired', v_device.library_id is not null,
+    'paired', v_device.tv_token is not null,
     'code', v_code.code,
     'expires_at', v_code.expires_at,
     -- So giay con lai, tinh o server. App TV phai dung so nay chu khong tu lay
@@ -115,7 +117,8 @@ begin
     return jsonb_build_object('paired', false, 'unknown_device', true);
   end if;
 
-  if v_device.library_id is null then
+  -- Xet tv_token: thiet bi bi Ngat van con library_id nhung chua duoc ghep lai
+  if v_device.tv_token is null or v_device.library_id is null then
     return jsonb_build_object('paired', false);
   end if;
 
@@ -258,8 +261,9 @@ begin
         select jsonb_agg(
                  jsonb_build_object(
                    'id', d.id, 'name', d.name,
+                   'paired', d.tv_token is not null,
                    'paired_at', d.paired_at, 'last_seen_at', d.last_seen_at
-                 ) order by d.paired_at
+                 ) order by d.paired_at nulls last, d.created_at
                )
           from public.devices d where d.library_id = v_library.id
       ),
@@ -287,7 +291,19 @@ begin
 end;
 $$;
 
-/** Ngat mot TV khoi kho. TV do se hien lai man hinh nhap ma. */
+/**
+ * Ngat mot TV khoi kho: thu hoi tv_token nen TV do mat quyen doc ngay, va hien
+ * lai man hinh nhap ma.
+ *
+ * GIU NGUYEN library_id. Truoc day ham nay xoa ca library_id, hau qua la khi TV
+ * ghep lai ma trang admin khong kem token (trinh duyet khac, hoac da "Quen kho")
+ * thi pair_claim thay thiet bi khong thuoc kho nao va TAO KHO MOI rong. Kho cu
+ * van con video nhung khong ai co token de vao, con admin thi them video vao kho
+ * cu trong khi TV da sang kho moi.
+ *
+ * Giu library_id thi ghep lai la tro ve dung kho cu, khong mat gi.
+ * Muon bo han thiet bi khoi kho thi dung forget_device().
+ */
 create or replace function public.unpair_device(p_admin_token text, p_device_id uuid)
 returns void
 language plpgsql
@@ -305,7 +321,36 @@ begin
   end if;
 
   update public.devices
-     set library_id = null, tv_token = null, paired_at = null
+     set tv_token = null, paired_at = null
+   where id = p_device_id and library_id = v_library_id;
+  if not found then
+    raise exception 'Thiết bị không thuộc kho này';
+  end if;
+end;
+$$;
+
+/**
+ * Bo han mot thiet bi khoi kho. Khac unpair_device: sau khi goi ham nay, TV do
+ * ghep lai se tao kho MOI chu khong tro ve kho cu. Dung khi thanh ly hoac cho
+ * TV di.
+ */
+create or replace function public.forget_device(p_admin_token text, p_device_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  v_library_id uuid;
+begin
+  select id into v_library_id from public.libraries
+   where admin_token = trim(coalesce(p_admin_token, ''));
+  if v_library_id is null then
+    raise exception 'Token quản trị không hợp lệ';
+  end if;
+
+  delete from public.devices
    where id = p_device_id and library_id = v_library_id;
   if not found then
     raise exception 'Thiết bị không thuộc kho này';
@@ -600,6 +645,7 @@ grant execute on function public.pair_claim(text, text)          to anon, authen
 grant execute on function public.library_info(text)              to anon, authenticated;
 grant execute on function public.rename_library(text, text)      to anon, authenticated;
 grant execute on function public.unpair_device(text, uuid)       to anon, authenticated;
+grant execute on function public.forget_device(text, uuid)       to anon, authenticated;
 grant execute on function public.tv_home(integer)                to anon, authenticated;
 grant execute on function public.search_videos(text, integer)    to anon, authenticated;
 grant execute on function public.save_progress(uuid, integer, integer) to anon, authenticated;

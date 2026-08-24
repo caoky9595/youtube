@@ -367,10 +367,16 @@ quyền. Lấy quyền như sau:
 Máy mới nhận đúng token của kho đang dùng — không tạo kho mới, không mất video
 nào.
 
-### Ngắt một TV
+### Ngắt một TV, hoặc bỏ hẳn nó khỏi kho
 
-Tab **TV đã ghép** → **Ngắt** ở dòng thiết bị. TV đó hiện lại màn hình nhập mã
-ngay lần mở app sau. Video trong kho không bị xoá.
+Tab **TV đã ghép** có hai hành động khác nhau:
+
+| | Tác dụng |
+|---|---|
+| **Ngắt** | Thu hồi quyền đọc của TV đó, nó hiện lại màn hình nhập mã. **Vẫn giữ liên kết với kho** — ghép lại là về đúng kho này cùng toàn bộ video, kể cả khi nhập mã từ một trình duyệt khác. |
+| **Bỏ khỏi kho** | Cắt hẳn liên kết. TV đó ghép lại sẽ tạo **kho mới rỗng**. Dùng khi thanh lý hoặc cho TV đi. |
+
+Cả hai đều **không xoá** video trong kho.
 
 ---
 

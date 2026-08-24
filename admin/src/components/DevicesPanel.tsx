@@ -80,30 +80,68 @@ export function DevicesPanel({
         {library.devices.map((d) => (
           <li
             key={d.id}
-            className="flex items-center gap-3 rounded-lg bg-yt-bg px-3 py-2 text-sm"
+            className="flex flex-wrap items-center gap-3 rounded-lg bg-yt-bg px-3 py-2 text-sm"
           >
             <span className="font-medium">{d.name}</span>
+            {d.paired ? (
+              <span className="rounded-full bg-emerald-600/20 px-2 py-0.5 text-xs text-emerald-300">
+                đang kết nối
+              </span>
+            ) : (
+              <span className="rounded-full bg-yt-hover px-2 py-0.5 text-xs text-yt-dim">
+                đã ngắt
+              </span>
+            )}
             <span className="text-xs text-yt-dim">
               hoạt động lần cuối {relative(d.last_seen_at)}
             </span>
-            <Button
-              size="sm"
-              variant="danger"
-              className="ml-auto"
-              onClick={() => {
-                if (!confirm(`Ngắt “${d.name}” khỏi kho? TV đó sẽ hiện lại màn hình nhập mã.`))
-                  return
-                run(() => api.unpairDevice(d.id), 'Đã ngắt thiết bị')
-              }}
-            >
-              Ngắt
-            </Button>
+
+            <span className="ml-auto flex gap-2">
+              {d.paired && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (
+                      !confirm(
+                        `Ngắt “${d.name}”? TV đó hiện lại màn hình nhập mã. Ghép lại là về đúng kho này cùng toàn bộ video.`,
+                      )
+                    )
+                      return
+                    run(() => api.unpairDevice(d.id), 'Đã ngắt thiết bị')
+                  }}
+                >
+                  Ngắt
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => {
+                  if (
+                    !confirm(
+                      `Bỏ hẳn “${d.name}” khỏi kho? Khác với Ngắt: TV đó ghép lại sẽ tạo kho mới rỗng, không về kho này nữa. Video trong kho không bị xoá.`,
+                    )
+                  )
+                    return
+                  run(() => api.forgetDevice(d.id), 'Đã bỏ thiết bị khỏi kho')
+                }}
+              >
+                Bỏ khỏi kho
+              </Button>
+            </span>
           </li>
         ))}
         {library.devices.length === 0 && (
           <li className="text-sm text-yt-dim">Chưa có TV nào trong kho này.</li>
         )}
       </ul>
+
+      <p className="mt-4 text-xs leading-relaxed text-yt-dim">
+        <b className="text-yt-text">Ngắt</b> chỉ thu hồi quyền đọc của TV — ghép lại là về đúng kho
+        này cùng toàn bộ video, kể cả khi nhập mã từ một trình duyệt khác.{' '}
+        <b className="text-yt-text">Bỏ khỏi kho</b> thì cắt hẳn liên kết: TV đó ghép lại sẽ tạo kho
+        mới rỗng.
+      </p>
     </div>
   )
 }

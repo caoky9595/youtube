@@ -19,10 +19,11 @@ export type Shelf = {
   created_at: string
 }
 
-/** Mot app TV da ghep vao kho. */
+/** Mot app TV thuoc kho. paired=false la da bi Ngat nhung van giu lien ket kho. */
 export type Device = {
   id: string
   name: string
+  paired: boolean
   paired_at: string | null
   last_seen_at: string
 }
