@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as api from '../lib/api'
 import type { Shelf } from '../lib/types'
 import { friendlyError } from '../lib/errors'
@@ -15,7 +15,19 @@ type Props = {
 export function LibraryTab({ videos, shelves, onChanged }: Props) {
   const [filter, setFilter] = useState('')
   const [shelfFilter, setShelfFilter] = useState<string>('all')
+  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const [busy, setBusy] = useState(false)
   const shelfById = useMemo(() => new Map(shelves.map((s) => [s.id, s.title])), [shelves])
+
+  useEffect(() => {
+    if (!videos) return
+    // Sau khi xoa/tai lai, bo khoi danh sach chon nhung id khong con
+    setPicked((cur) => {
+      const alive = new Set(videos.map((v) => v.id))
+      const next = new Set([...cur].filter((id) => alive.has(id)))
+      return next.size === cur.size ? cur : next
+    })
+  }, [videos])
 
   const shown = useMemo(() => {
     if (!videos) return null
@@ -43,7 +55,41 @@ export function LibraryTab({ videos, shelves, onChanged }: Props) {
     }
   }
 
+  function toggle(id: string) {
+    setPicked((cur) => {
+      const next = new Set(cur)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  async function deletePicked() {
+    const ids = [...picked]
+    if (
+      !confirm(
+        `Xoá hẳn ${ids.length} video khỏi kho? Video vẫn còn trên YouTube, chỉ mất khỏi TV của bạn.`,
+      )
+    ) {
+      return
+    }
+    setBusy(true)
+    try {
+      await api.deleteVideos(ids)
+      setPicked(new Set())
+      toast(`Đã xoá ${ids.length} video`)
+      onChanged()
+    } catch (err) {
+      toast(friendlyError(err), 'err')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (!videos) return <Spinner />
+
+  const shownIds = shown?.map((v) => v.id) ?? []
+  const allShownPicked = shownIds.length > 0 && shownIds.every((id) => picked.has(id))
 
   return (
     <div>
@@ -70,7 +116,34 @@ export function LibraryTab({ videos, shelves, onChanged }: Props) {
         <span className="text-sm text-yt-dim">
           {shown?.length ?? 0}/{videos.length} video
         </span>
+        {shownIds.length > 0 && (
+          <Button
+            size="sm"
+            onClick={() =>
+              setPicked((cur) => {
+                const next = new Set(cur)
+                if (allShownPicked) shownIds.forEach((id) => next.delete(id))
+                else shownIds.forEach((id) => next.add(id))
+                return next
+              })
+            }
+          >
+            {allShownPicked ? 'Bỏ chọn hết' : `Chọn cả ${shownIds.length}`}
+          </Button>
+        )}
       </div>
+
+      {picked.size > 0 && (
+        <div className="sticky top-16 z-30 mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-yt-border bg-yt-panel/95 px-4 py-3 backdrop-blur">
+          <span className="text-sm font-medium">Đã chọn {picked.size} video</span>
+          <Button size="sm" variant="danger" disabled={busy} onClick={deletePicked}>
+            {busy ? 'Đang xoá…' : `Xoá ${picked.size} video`}
+          </Button>
+          <Button size="sm" onClick={() => setPicked(new Set())}>
+            Bỏ chọn
+          </Button>
+        </div>
+      )}
 
       {shown && shown.length === 0 ? (
         <Empty>
@@ -89,6 +162,8 @@ export function LibraryTab({ videos, shelves, onChanged }: Props) {
               thumbnailUrl={v.thumbnail_url}
               durationSeconds={v.duration_seconds}
               dimmed={!v.is_visible}
+              selected={picked.has(v.id)}
+              onToggleSelect={() => toggle(v.id)}
               badge={
                 !v.is_visible ? (
                   <span className="rounded bg-black/80 px-1.5 py-0.5 text-xs">Đang ẩn</span>

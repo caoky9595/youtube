@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
 import * as api from '../lib/api'
-import type { Shelf, Video } from '../lib/types'
 import { friendlyError } from '../lib/errors'
+import type { Shelf, Video } from '../lib/types'
+import { formatDuration } from '../lib/youtube'
+import { SortableList, SortableRow } from './Sortable'
 import { toast } from './Toast'
 import { Button, Empty, Spinner } from './ui'
-import { formatDuration } from '../lib/youtube'
 
 type Props = { shelves: Shelf[]; onChanged: () => void }
 
 export function ShelvesTab({ shelves, onChanged }: Props) {
   const [newTitle, setNewTitle] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
+  /** Thứ tự đang hiển thị, cập nhật ngay khi kéo cho mượt rồi mới ghi lên server. */
+  const [order, setOrder] = useState<Shelf[]>(shelves)
+
+  useEffect(() => setOrder(shelves), [shelves])
 
   async function run(fn: () => Promise<unknown>, okMsg: string) {
     try {
@@ -22,17 +27,14 @@ export function ShelvesTab({ shelves, onChanged }: Props) {
     }
   }
 
-  /** Doi cho shelf voi shelf ke ben roi ghi lai toan bo thu tu. */
-  function moveShelf(index: number, delta: number) {
-    const next = [...shelves]
-    const target = index + delta
-    if (target < 0 || target >= next.length) return
-    ;[next[index], next[target]] = [next[target], next[index]]
-    run(() => api.reorderShelves(next.map((s) => s.id)), 'Đã đổi thứ tự hàng')
+  function reorder(ids: string[]) {
+    // Cập nhật lạc quan để kéo xong là thấy ngay, không chờ mạng
+    setOrder((cur) => ids.map((id) => cur.find((s) => s.id === id)!).filter(Boolean))
+    run(() => api.reorderShelves(ids), 'Đã đổi thứ tự hàng')
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex max-w-4xl flex-col gap-6">
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -54,26 +56,39 @@ export function ShelvesTab({ shelves, onChanged }: Props) {
         </Button>
       </form>
 
-      {shelves.length === 0 ? (
+      {order.length === 0 ? (
         <Empty>
           Chưa có hàng nào. Trang chủ TV sẽ chỉ hiện hàng “Mới thêm”. Tạo hàng để nhóm video theo
           chủ đề.
         </Empty>
       ) : (
-        <div className="flex flex-col gap-3">
-          {shelves.map((shelf, i) => (
-            <ShelfRow
-              key={shelf.id}
-              shelf={shelf}
-              isFirst={i === 0}
-              isLast={i === shelves.length - 1}
-              open={openId === shelf.id}
-              onToggle={() => setOpenId(openId === shelf.id ? null : shelf.id)}
-              onMove={(d) => moveShelf(i, d)}
-              onChanged={onChanged}
-            />
-          ))}
-        </div>
+        <>
+          <p className="text-xs text-yt-dim">
+            Kéo <span className="text-zinc-400">⠿</span> để đổi thứ tự. Thứ tự này là thứ tự các
+            hàng trên trang chủ TV.
+          </p>
+          <SortableList ids={order.map((s) => s.id)} onReorder={reorder}>
+            <div className="flex flex-col gap-3">
+              {order.map((shelf, i) => (
+                <SortableRow key={shelf.id} id={shelf.id}>
+                  {(handle) => (
+                    <ShelfRow
+                      shelf={shelf}
+                      handle={handle}
+                      isFirst={i === 0}
+                      open={openId === shelf.id}
+                      onToggle={() => setOpenId(openId === shelf.id ? null : shelf.id)}
+                      onMoveTop={() =>
+                        reorder([shelf.id, ...order.filter((s) => s.id !== shelf.id).map((s) => s.id)])
+                      }
+                      onChanged={onChanged}
+                    />
+                  )}
+                </SortableRow>
+              ))}
+            </div>
+          </SortableList>
+        </>
       )}
     </div>
   )
@@ -81,19 +96,19 @@ export function ShelvesTab({ shelves, onChanged }: Props) {
 
 function ShelfRow({
   shelf,
+  handle,
   isFirst,
-  isLast,
   open,
   onToggle,
-  onMove,
+  onMoveTop,
   onChanged,
 }: {
   shelf: Shelf
+  handle: React.ReactNode
   isFirst: boolean
-  isLast: boolean
   open: boolean
   onToggle: () => void
-  onMove: (delta: number) => void
+  onMoveTop: () => void
   onChanged: () => void
 }) {
   const [videos, setVideos] = useState<Video[] | null>(null)
@@ -106,7 +121,7 @@ function ShelfRow({
     api
       .getShelfVideos(shelf.id)
       .then((v) => alive && setVideos(v))
-      .catch((e) => toast((e as Error).message, 'err'))
+      .catch((e) => toast(friendlyError(e), 'err'))
     return () => {
       alive = false
     }
@@ -123,37 +138,15 @@ function ShelfRow({
     }
   }
 
-  function moveVideo(index: number, delta: number) {
-    if (!videos) return
-    const next = [...videos]
-    const target = index + delta
-    if (target < 0 || target >= next.length) return
-    ;[next[index], next[target]] = [next[target], next[index]]
-    setVideos(next) // cap nhat lac quan cho muot
-    run(() => api.reorderShelfVideos(shelf.id, next.map((v) => v.id)), 'Đã đổi thứ tự')
+  function reorderVideos(ids: string[]) {
+    setVideos((cur) => (cur ? ids.map((id) => cur.find((v) => v.id === id)!).filter(Boolean) : cur))
+    run(() => api.reorderShelfVideos(shelf.id, ids), 'Đã đổi thứ tự')
   }
 
   return (
     <div className="overflow-hidden rounded-xl border border-yt-border bg-yt-panel">
-      <div className="flex items-center gap-2 px-4 py-3">
-        <div className="flex flex-col">
-          <button
-            onClick={() => onMove(-1)}
-            disabled={isFirst}
-            title="Lên"
-            className="text-xs leading-none text-yt-dim hover:text-white disabled:opacity-25"
-          >
-            ▲
-          </button>
-          <button
-            onClick={() => onMove(1)}
-            disabled={isLast}
-            title="Xuống"
-            className="text-xs leading-none text-yt-dim hover:text-white disabled:opacity-25"
-          >
-            ▼
-          </button>
-        </div>
+      <div className="flex items-center gap-2 px-3 py-3">
+        {handle}
 
         {editing ? (
           <form
@@ -184,6 +177,11 @@ function ShelfRow({
           </button>
         )}
 
+        {!isFirst && (
+          <Button size="sm" onClick={onMoveTop}>
+            Lên đầu
+          </Button>
+        )}
         <Button size="sm" onClick={() => setEditing(true)}>
           Đổi tên
         </Button>
@@ -211,7 +209,7 @@ function ShelfRow({
       </div>
 
       {open && (
-        <div className="border-t border-yt-border px-4 py-3">
+        <div className="border-t border-yt-border px-3 py-3">
           {videos === null ? (
             <Spinner />
           ) : videos.length === 0 ? (
@@ -219,55 +217,58 @@ function ShelfRow({
               Hàng này chưa có video. Hàng rỗng sẽ không hiện trên TV.
             </p>
           ) : (
-            <ol className="flex flex-col">
-              {videos.map((v, i) => (
-                <li
-                  key={v.id}
-                  className="flex items-center gap-3 border-b border-yt-border/60 py-2 last:border-0"
-                >
-                  <span className="w-6 text-right text-xs tabular-nums text-yt-dim">{i + 1}</span>
-                  <div className="flex flex-col">
-                    <button
-                      onClick={() => moveVideo(i, -1)}
-                      disabled={i === 0}
-                      className="text-xs leading-none text-yt-dim hover:text-white disabled:opacity-25"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => moveVideo(i, 1)}
-                      disabled={i === videos.length - 1}
-                      className="text-xs leading-none text-yt-dim hover:text-white disabled:opacity-25"
-                    >
-                      ▼
-                    </button>
-                  </div>
-                  <img
-                    src={v.thumbnail_url ?? `https://i.ytimg.com/vi/${v.youtube_id}/default.jpg`}
-                    alt=""
-                    className="h-9 w-16 shrink-0 rounded object-cover"
-                  />
-                  <span className="flex-1 truncate text-sm" title={v.title}>
-                    {v.title}
-                  </span>
-                  <span className="text-xs tabular-nums text-yt-dim">
-                    {formatDuration(v.duration_seconds)}
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      run(
-                        () => api.removeFromShelf(shelf.id, v.id),
-                        'Đã bỏ khỏi hàng (video vẫn trong kho)',
-                        true,
-                      )
-                    }
-                  >
-                    Bỏ khỏi hàng
-                  </Button>
-                </li>
-              ))}
-            </ol>
+            <SortableList ids={videos.map((v) => v.id)} onReorder={reorderVideos}>
+              <ol className="flex flex-col">
+                {videos.map((v, i) => (
+                  <SortableRow key={v.id} id={v.id}>
+                    {(vHandle) => (
+                      <li className="flex items-center gap-3 border-b border-yt-border/60 py-2 last:border-0">
+                        {vHandle}
+                        <span className="w-5 text-right text-xs tabular-nums text-yt-dim">
+                          {i + 1}
+                        </span>
+                        <img
+                          src={v.thumbnail_url ?? `https://i.ytimg.com/vi/${v.youtube_id}/default.jpg`}
+                          alt=""
+                          className="h-9 w-16 shrink-0 rounded object-cover"
+                        />
+                        <span className="flex-1 truncate text-sm" title={v.title}>
+                          {v.title}
+                        </span>
+                        <span className="text-xs tabular-nums text-yt-dim">
+                          {formatDuration(v.duration_seconds)}
+                        </span>
+                        {i > 0 && (
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              reorderVideos([
+                                v.id,
+                                ...videos.filter((x) => x.id !== v.id).map((x) => x.id),
+                              ])
+                            }
+                          >
+                            Lên đầu
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            run(
+                              () => api.removeFromShelf(shelf.id, v.id),
+                              'Đã bỏ khỏi hàng (video vẫn trong kho)',
+                              true,
+                            )
+                          }
+                        >
+                          Bỏ khỏi hàng
+                        </Button>
+                      </li>
+                    )}
+                  </SortableRow>
+                ))}
+              </ol>
+            </SortableList>
           )}
         </div>
       )}

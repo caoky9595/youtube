@@ -169,6 +169,16 @@ export async function deleteVideo(id: string) {
   if (error) rethrow(error)
 }
 
+/**
+ * Xoa nhieu video trong MOT request (`id=in.(...)`) thay vi N request.
+ * RLS van xet tung dong, nen chi xoa duoc video thuoc kho cua token nay.
+ */
+export async function deleteVideos(ids: string[]) {
+  if (ids.length === 0) return
+  const { error } = await sb().from('videos').delete().in('id', ids)
+  if (error) rethrow(error)
+}
+
 export async function setVideoVisible(id: string, is_visible: boolean) {
   const { error } = await sb().from('videos').update({ is_visible }).eq('id', id)
   if (error) rethrow(error)
