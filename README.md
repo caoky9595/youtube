@@ -25,7 +25,7 @@ khẩu: app TV hiện mã, bạn nhập mã đó vào trang quản trị, thế 
 
 | Thư mục     | Là gì                                                                  |
 |-------------|------------------------------------------------------------------------|
-| `supabase/` | SQL. Dán `all.sql` một lần vào SQL Editor là xong.                     |
+| `supabase/` | SQL. Dán `all.sql` một lần vào SQL Editor là xong. `reset.sql` xoá sạch dữ liệu để làm lại. |
 | `admin/`    | Web quản trị (React 19 + Vite + Tailwind 4). Deploy đâu cũng được.     |
 | `tv/`       | App Android TV (Kotlin, Compose for TV). Sideload APK lên Sony Bravia. |
 | `docs/`     | Hướng dẫn cài đặt chi tiết → [docs/SETUP.md](docs/SETUP.md).           |

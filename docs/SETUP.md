@@ -380,6 +380,29 @@ Cả hai đều **không xoá** video trong kho.
 
 ---
 
+## Bắt đầu lại từ đầu
+
+Muốn xoá sạch mọi thứ và làm lại như chưa từng thêm video nào:
+
+1. Supabase → **SQL Editor** → dán `supabase/all.sql` → **Run**
+   (để có bản hàm mới nhất; chạy lại không mất dữ liệu)
+2. Dán `supabase/reset.sql` → **Run**
+
+```bash
+pbcopy < supabase/all.sql     # bước 1
+pbcopy < supabase/reset.sql   # bước 2
+```
+
+`reset.sql` xoá sạch kho, video, hàng, thiết bị đã ghép và tiến độ xem — giữ
+nguyên cấu trúc bảng và các hàm. Sau đó:
+
+- Mọi TV đã ghép tự hiện lại màn hình nhập mã
+- Mọi trình duyệt đang quản trị tự về màn nhập mã (token cũ hết hiệu lực)
+
+Rồi ghép lại như mục 5.
+
+---
+
 ## 6. Điều khiển bằng remote
 
 | Phím                | Tác dụng                                          |
