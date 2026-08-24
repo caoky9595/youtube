@@ -68,9 +68,12 @@ export function PairScreen({ mode = 'first', onPaired, onCancel }: Props) {
         <input
           ref={inputRef}
           autoFocus
+          inputMode="numeric"
           value={code}
           onChange={(e) => {
-            // Ma chi gom chu in va so, khong co O/0/I/1/U de khoi nhin lan
+            // Ma moi gio chi toan so, nhung van cho go chu: ma cu (sinh truoc
+            // khi doi bang chu cai) van con hieu luc toi 15 phut sau khi deploy
+            // thay doi nay, nen chua the sieet chat ve chi-so ngay duoc.
             const cleaned = e.target.value
               .toUpperCase()
               .replace(/[^0-9A-Z]/g, '')
@@ -78,7 +81,7 @@ export function PairScreen({ mode = 'first', onPaired, onCancel }: Props) {
             setCode(cleaned)
             setError(null)
           }}
-          placeholder="AB3K7Z"
+          placeholder="482913"
           spellCheck={false}
           autoComplete="off"
           className="mb-5 w-full rounded-xl border border-yt-border bg-yt-panel px-4 py-4 text-center font-mono text-3xl tracking-[0.4em] outline-none focus:border-zinc-500"

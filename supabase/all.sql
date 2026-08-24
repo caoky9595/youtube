@@ -52,8 +52,11 @@ as $$
 $$;
 
 /**
- * Ma ghep 6 ky tu. Bo O/0/I/1/U de nguoi doc tren TV khong nhin lan, va de
- * khong tinh cờ tao ra tu ngu khong hay.
+ * Ma ghep 6 chu so. Truoc day tron ca chu va so (bo O/0/I/1/U de khong nhin
+ * lan), nhung van sot hai cap de nham nhat khi doc tu xa tren TV: S voi 5, B
+ * voi 8 — nguoi dung bao "ro rang go dung ma van bi bao sai". Chi dung so thi
+ * het hoan toan nguy co nham chu voi so; 10 ky tu x 6 vi tri van thua cho nhu
+ * cau mot nha, ma lai het han sau 15 phut.
  */
 create or replace function public.new_pair_code()
 returns text
@@ -62,7 +65,7 @@ volatile
 set search_path = public, extensions
 as $$
 declare
-  alphabet constant text := '23456789ABCDEFGHJKLMNPQRSTVWXYZ';
+  alphabet constant text := '0123456789';
   out text := '';
 begin
   for _ in 1..6 loop

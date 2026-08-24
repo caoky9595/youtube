@@ -444,10 +444,11 @@ qua `http://192.168.x.x` thì không đủ điều kiện.
 hoặc `SUPABASE_ANON_KEY`, hoặc đã thêm nhưng chưa build lại. Hai giá trị này
 nhúng vào APK lúc build, không đọc lúc chạy.
 
-**Trang quản trị báo "Mã không đúng"** — bộ ký tự sinh mã là
-`23456789ABCDEFGHJKLMNPQRSTVWXYZ`: đã bỏ `0 1 I O U` để không nhìn lẫn, nên ký tự
-tròn bạn thấy trên TV chỉ có thể là **Q**, **D** hoặc **G**. Gõ đúng mà vẫn sai
-thì mã đã hết hạn — nhìn lại mã đang hiện trên TV.
+**Trang quản trị báo "Mã không đúng"** — mã ghép chỉ gồm **chữ số** (không có
+chữ cái). Trước đây dùng cả chữ lẫn số nhưng hai cặp `S`/`5` và `B`/`8` quá dễ
+nhìn lẫn khi đọc trên TV từ xa, nên đã đổi hẳn sang toàn số. Gõ đúng mà vẫn sai
+thì mã đã hết hạn — nhìn lại mã đang hiện trên TV, đừng dùng mã đã chụp ảnh
+hoặc ghi lại từ trước.
 
 **Mở trang quản trị trên máy mới thì nó bắt nhập mã** — đúng như thiết kế, mỗi
 trình duyệt phải được cấp quyền một lần. Nhập lại đúng mã đang hiện trên TV là
