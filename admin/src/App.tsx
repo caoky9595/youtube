@@ -30,7 +30,9 @@ type Phase =
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>({ kind: 'checking' })
-  const [addingDevice, setAddingDevice] = useState(false)
+  // null = khong o man nhap ma. 'add' = ghep them TV moi, 'reconnect' = noi lai
+  // mot TV vua bi thu hoi quyen.
+  const [addingDevice, setAddingDevice] = useState<'add' | 'reconnect' | null>(null)
   const [tab, setTab] = useState<Tab>('add')
   // Link do app YouTube chia se sang (Android). Doc mot lan luc mo trang.
   const [sharedUrl, setSharedUrl] = useState<string | null>(() =>
@@ -117,13 +119,13 @@ export default function App() {
   if (addingDevice) {
     return (
       <PairScreen
-        addingToExisting
+        mode={addingDevice}
         onPaired={() => {
-          setAddingDevice(false)
+          setAddingDevice(null)
           setTab('devices')
           openLibrary()
         }}
-        onCancel={() => setAddingDevice(false)}
+        onCancel={() => setAddingDevice(null)}
       />
     )
   }
@@ -181,7 +183,8 @@ export default function App() {
           <DevicesPanel
             library={library}
             onChanged={openLibrary}
-            onAddDevice={() => setAddingDevice(true)}
+            onAddDevice={() => setAddingDevice('add')}
+            onReconnect={() => setAddingDevice('reconnect')}
             onForget={() => {
               api.forgetLibrary()
               setVideos(null)

@@ -149,12 +149,15 @@ as $$
       select jsonb_build_object(
                'exists', true,
                'claimed', c.claimed_at is not null,
-               'expired', c.expires_at <= now()
+               'claim_count', coalesce(c.claim_count, 0),
+               'expired', c.expires_at <= now(),
+               'expires_in', greatest(0, extract(epoch from (c.expires_at - now()))::int)
              )
         from public.pairing_codes c
        where c.code = upper(trim(coalesce(p_code, '')))
     ),
-    jsonb_build_object('exists', false, 'claimed', false, 'expired', true)
+    jsonb_build_object('exists', false, 'claimed', false, 'claim_count', 0,
+                       'expired', true, 'expires_in', 0)
   )
 $$;
 
@@ -186,9 +189,10 @@ begin
   if v_code.code is null then
     raise exception 'Mã không đúng';
   end if;
-  if v_code.claimed_at is not null then
-    raise exception 'Mã này đã được dùng rồi';
-  end if;
+  -- KHONG chan ma da duoc dung: con trong 15 phut hieu luc thi may quan tri
+  -- thu hai (dien thoai + may tinh) van nhap duoc dung ma dang hien tren TV.
+  -- Chan o day tung khien moi lan chi noi duoc mot may, may sau bao "Ma nay da
+  -- duoc dung roi" du ma van con hien ro tren man hinh.
   if v_code.expires_at <= now() then
     raise exception 'Mã đã hết hạn, bấm tạo mã mới trên TV';
   end if;
@@ -222,7 +226,12 @@ begin
    where id = v_device.id
   returning * into v_device;
 
-  update public.pairing_codes set claimed_at = now() where code = v_code.code;
+  -- Giu moc lan dung dau tien, de TV bao duoc "da them may quan tri" ma van
+  -- tiep tuc hien ma cho may ke tiep.
+  update public.pairing_codes
+     set claimed_at = coalesce(claimed_at, now()),
+         claim_count = coalesce(claim_count, 0) + 1
+   where code = v_code.code;
 
   return jsonb_build_object(
     'admin_token',  v_library.admin_token,

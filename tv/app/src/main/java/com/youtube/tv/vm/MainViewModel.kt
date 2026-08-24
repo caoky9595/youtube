@@ -27,6 +27,12 @@ private const val SEARCH_DEBOUNCE_MS = 300L
 private const val PAIR_POLL_MS = 2_500L
 
 /**
+ * Nhip hoi ngam khi chua ghep, chay ca luc nguoi dung khong o muc Ket noi.
+ * Thua hon vong lap tren man hinh Ket noi vi day chi la luoi an toan.
+ */
+private const val BG_PAIR_POLL_MS = 8_000L
+
+/**
  * Nhip tu lam moi trang chu, de video vua them ben trang quan tri hien ra ma
  * khong phai thoat app mo lai.
  */
@@ -60,13 +66,16 @@ sealed interface PairPhase {
         val code: String,
         val secondsLeft: Int,
         val forAdmin: Boolean = false,
+        /**
+         * So may quan tri da nhap ma nay. Khong dung ma di sau lan nhap dau:
+         * ma con hieu luc thi may thu hai (dien thoai, may tinh) van nhap duoc,
+         * nen phai giu ma tren man hinh va chi bao "da them N may".
+         */
+        val adminsAdded: Int = 0,
     ) : PairPhase
 
     /** Da ghep. Man Ket noi hien trang thai + nut xin ma cho may quan tri moi. */
     data object Paired : PairPhase
-
-    /** Vua co mot may quan tri nhap ma xong. */
-    data object AdminAdded : PairPhase
 
     /** @param canRetry loi tam thoi (mang), nen cho nguoi dung bam thu lai. */
     data class Failed(val message: String, val canRetry: Boolean = false) : PairPhase
@@ -108,6 +117,7 @@ class MainViewModel : ViewModel() {
 
     private var searchJob: Job? = null
     private var pairJob: Job? = null
+    private var watchJob: Job? = null
 
     init {
         checkPairing()
@@ -218,17 +228,25 @@ class MainViewModel : ViewModel() {
                     } else {
                         val status = YouTubeApi.pairCodeStatus(code)
                         when {
-                            status.claimed -> {
-                                _pair.value = PairPhase.AdminAdded
-                                return@launch
-                            }
-                            // Het han hoac ma bi don di -> xin ma moi vong sau
+                            // Khong return o day: ma van con hieu luc nen may
+                            // quan tri thu hai dung duoc tiep. Truoc kia dong
+                            // ma ngay sau may dau tien, thanh ra moi lan chi
+                            // noi duoc mot may.
                             status.expired || !status.exists -> code = null
                             else -> {
                                 val current = _pair.value
                                 if (current is PairPhase.ShowingCode) {
                                     _pair.value = current.copy(
-                                        secondsLeft = (current.secondsLeft - 3).coerceAtLeast(0),
+                                        // Lay so giay con lai tu server, dong ho
+                                        // TV thuong lech nen tu tru se sai.
+                                        secondsLeft = status.expiresIn ?: current.secondsLeft,
+                                        // Server ban cu khong co claim_count,
+                                        // nhung co claimed — van bao duoc la
+                                        // "da co 1 may nhap ma".
+                                        adminsAdded = maxOf(
+                                            status.claimCount,
+                                            if (status.claimed) 1 else 0,
+                                        ),
                                     )
                                 }
                             }
@@ -243,6 +261,41 @@ class MainViewModel : ViewModel() {
                 delay(PAIR_POLL_MS)
             }
         }
+    }
+
+    /**
+     * Theo doi viec ghep NGAM, chay bat ke dang o man hinh nao.
+     *
+     * Truoc day vong lap hien ma bi huy ngay khi roi muc Ket noi. Nguoi dung
+     * doc ma, bam ra ngoai, nhap ma ben trang quan tri: server ghep xong nhung
+     * TV khong hay biet gi, phai tat mo lai app moi thay — nhin nhu "thoat ra
+     * la mat ket noi". Luoi an toan nay bat duoc truong hop do.
+     */
+    fun watchForPairing() {
+        if (watchJob?.isActive == true) return
+        watchJob = viewModelScope.launch {
+            while (!_paired.value) {
+                delay(BG_PAIR_POLL_MS)
+                // Dang o man Ket noi thi vong lap kia hoi roi, khong hoi chong
+                if (pairJob?.isActive == true) continue
+                try {
+                    val state = YouTubeApi.pairPoll()
+                    if (state.paired && state.tvToken != null) {
+                        finishPairing(state.tvToken)
+                        return@launch
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Mang loi thi bo qua, vong sau hoi lai
+                }
+            }
+        }
+    }
+
+    fun stopWatchingPairing() {
+        watchJob?.cancel()
+        watchJob = null
     }
 
     /**
@@ -294,6 +347,37 @@ class MainViewModel : ViewModel() {
      *        hien. Neu khong co co nay thi cu moi 15 giay man hinh lai nhay
      *        mot cai, va mot cu mang chap chon la xoa sach danh sach dang xem.
      */
+    /**
+     * Kiem tra am tham xem token con hieu luc khong, goi trong vong lam moi nen.
+     *
+     * Can thiet vi khi admin thu hoi quyen, tv_home KHONG bao loi — RLS chi loc
+     * het du lieu nen no tra ve {"shelves": []}, giong y het mot kho rong. Nen
+     * phai hoi pair_poll moi phan biet duoc "bi ngat" voi "chua co video".
+     *
+     * Bi ngat thi xoa token va chuyen sang trang thai chua ghep; MainActivity
+     * thay paired doi thi tu dua nguoi dung sang muc Ket noi de co ma moi.
+     */
+    fun verifyStillPaired() {
+        if (YouTubeApp.tvToken == null) return
+        viewModelScope.launch {
+            val state = try {
+                YouTubeApi.pairPoll()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                return@launch // mang loi thi im lang, khong ket luan la bi ngat
+            }
+            if (!state.paired) {
+                YouTubeApp.tvToken = null
+                _paired.value = false
+                _home.value = HomeState.Ready(HomeData())
+                _pair.value = PairPhase.Failed("Kết nối đã bị thu hồi từ trang quản trị")
+            } else if (state.tvToken != null && state.tvToken != YouTubeApp.tvToken) {
+                YouTubeApp.tvToken = state.tvToken
+            }
+        }
+    }
+
     fun refresh(quiet: Boolean = false) {
         if (YouTubeApp.tvToken == null) return
         if (!quiet) _home.value = HomeState.Loading

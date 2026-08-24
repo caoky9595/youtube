@@ -348,6 +348,15 @@ App xuất hiện ở hàng ứng dụng trên màn hình chính của TV, nhờ
 Mã có hiệu lực 15 phút và **tự đổi mã mới khi hết hạn**, nên cứ để màn hình Kết
 nối mở, không cần bấm lại.
 
+Hai điều đáng biết:
+
+- **Không phải ngồi chờ ở màn hình Kết nối.** Đọc mã rồi bấm ra ngoài xem trang
+  chủ vẫn được — app vẫn hỏi server ngầm, nhập mã xong khoảng 8 giây là TV tự
+  vào kho, không cần tắt mở lại app.
+- **Một mã dùng được cho nhiều máy quản trị.** Nhập ở điện thoại rồi vẫn nhập
+  được đúng mã đó ở máy tính, miễn là mã chưa hết hạn. TV đếm và hiện "Đã kết
+  nối N máy quản trị".
+
 ### Thêm TV thứ hai vào cùng kho
 
 Trên trang quản trị, tab **TV đã ghép** → **+ Ghép thêm TV** → nhập mã của TV
@@ -373,10 +382,15 @@ Tab **TV đã ghép** có hai hành động khác nhau:
 
 | | Tác dụng |
 |---|---|
-| **Ngắt** | Thu hồi quyền đọc của TV đó, nó hiện lại màn hình nhập mã. **Vẫn giữ liên kết với kho** — ghép lại là về đúng kho này cùng toàn bộ video, kể cả khi nhập mã từ một trình duyệt khác. |
+| **Thu hồi quyền** | TV đó thôi xem được. Trong khoảng 15 giây app tự phát hiện, **tự chuyển sang mục Kết nối và hiện mã mới**. **Vẫn giữ liên kết với kho** — nối lại là về đúng kho này cùng toàn bộ video. |
 | **Bỏ khỏi kho** | Cắt hẳn liên kết. TV đó ghép lại sẽ tạo **kho mới rỗng**. Dùng khi thanh lý hoặc cho TV đi. |
+| **Ngừng quản lý trên máy này** | Chỉ máy/trình duyệt đang dùng thôi quản lý kho. **TV không bị ảnh hưởng gì**, vẫn xem đầy đủ. |
 
-Cả hai đều **không xoá** video trong kho.
+Cả ba đều **không xoá** video trong kho.
+
+**Nối lại một TV vừa bị thu hồi:** dòng thiết bị đó hiện nhãn *đã bị thu hồi*
+kèm nút **Kết nối lại**. Bấm nút đó → nhập mã đang hiện trên TV → TV về đúng kho
+cũ, video còn nguyên.
 
 ---
 
@@ -443,11 +457,13 @@ tròn bạn thấy trên TV chỉ có thể là **Q**, **D** hoặc **G**. Gõ �
 thì mã đã hết hạn — nhìn lại mã đang hiện trên TV.
 
 **Mở trang quản trị trên máy mới thì nó bắt nhập mã** — đúng như thiết kế, mỗi
-trình duyệt phải được cấp quyền một lần. Lấy mã ở TV: **Kết nối → Lấy mã để thêm
-máy quản trị**.
+trình duyệt phải được cấp quyền một lần. Nhập lại đúng mã đang hiện trên TV là
+được (một mã dùng cho nhiều máy). TV đã ghép rồi thì lấy mã ở **Kết nối → Lấy mã
+để thêm máy quản trị**.
 
-**TV đã ghép rồi mà lại hiện "Chưa kết nối"** — thiết bị đã bị **Ngắt** từ trang
-quản trị, hoặc app vừa bị xoá dữ liệu. Chọn Kết nối và ghép lại.
+**TV đã ghép rồi mà lại hiện màn hình nhập mã** — thiết bị đã bị **Thu hồi
+quyền** từ trang quản trị, hoặc app vừa bị xoá dữ liệu. Bên admin bấm **Kết nối
+lại** rồi nhập mã đang hiện trên TV; video trong kho không mất.
 
 Nếu là do **mất mạng** thì app không báo như vậy: nó giữ nguyên trạng thái đã
 ghép và hiện *"Không tải được danh sách"* kèm nút **Thử lại** ở Trang chủ. Mất

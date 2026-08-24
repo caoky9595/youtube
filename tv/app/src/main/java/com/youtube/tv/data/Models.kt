@@ -44,6 +44,10 @@ data class CodeStatus(
     val exists: Boolean = false,
     val claimed: Boolean = false,
     val expired: Boolean = true,
+    /** So may quan tri da nhap ma nay. Mot ma dung duoc cho nhieu may. */
+    @SerialName("claim_count") val claimCount: Int = 0,
+    /** Con bao nhieu giay nua het han, do server tinh — dong ho TV hay lech. */
+    @SerialName("expires_in") val expiresIn: Int? = null,
 )
 
 /** Ket qua pair_request / pair_poll. */

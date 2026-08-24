@@ -48,7 +48,6 @@ fun PairScreen(
     adminUrlHint: String?,
     onRequestAdminCode: () -> Unit,
     onRetry: () -> Unit,
-    onDone: () -> Unit,
 ) {
     when (phase) {
         PairPhase.Checking, PairPhase.Requesting ->
@@ -62,13 +61,6 @@ fun PairScreen(
         )
 
         PairPhase.Paired -> Connected(adminUrlHint, onRequestAdminCode)
-
-        PairPhase.AdminAdded -> CenteredMessage(
-            title = "Đã thêm máy quản trị",
-            detail = "Máy đó giờ quản lý được cùng kho video này.",
-            actionLabel = "Xong",
-            onAction = onDone,
-        )
 
         is PairPhase.ShowingCode -> CodeBoard(phase, adminUrlHint)
     }
@@ -189,6 +181,21 @@ private fun CodeBoard(phase: PairPhase.ShowingCode, adminUrlHint: String?) {
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(top = 8.dp),
         )
+
+        // Mot ma dung duoc cho nhieu may quan tri (dien thoai va may tinh) cho
+        // den khi het han, nen sau may dau tien van giu ma tren man hinh.
+        if (phase.adminsAdded > 0) {
+            Text(
+                text = "Đã kết nối ${phase.adminsAdded} máy quản trị. " +
+                    "Vẫn nhập được mã này trên máy khác cho tới khi đổi mã.",
+                color = YtText,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 20.dp)
+                    .widthIn(max = 700.dp),
+            )
+        }
     }
 }
 

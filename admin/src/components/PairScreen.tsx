@@ -6,14 +6,35 @@ import { Button } from './ui'
 
 const CODE_LENGTH = 6
 
+/**
+ * first     = lan dau, chua quan tri kho nao
+ * add       = da co kho, ghep THEM mot TV nua vao kho do
+ * reconnect = mot TV vua bi thu hoi quyen, nay noi lai voi dung kho cu
+ */
+type Mode = 'first' | 'add' | 'reconnect'
+
 type Props = {
-  /** Da quan tri mot kho roi: dang ghep THEM mot TV vao kho do. */
-  addingToExisting?: boolean
+  mode?: Mode
   onPaired: () => void
   onCancel?: () => void
 }
 
-export function PairScreen({ addingToExisting, onPaired, onCancel }: Props) {
+const COPY: Record<Mode, { title: string; hint: string }> = {
+  first: {
+    title: 'Kết nối với TV',
+    hint: 'Mở app YouTube trên TV, vào mục Kết nối ở menu bên trái — nó sẽ hiện một mã 6 ký tự. Nhập mã đó vào đây.',
+  },
+  add: {
+    title: 'Ghép thêm một TV',
+    hint: 'Mở app trên TV mới, vào mục Kết nối, nó sẽ hiện một mã 6 ký tự. Nhập mã đó vào đây để TV này dùng chung kho video.',
+  },
+  reconnect: {
+    title: 'Kết nối lại với TV',
+    hint: 'Trên TV vừa bị thu hồi, vào mục Kết nối ở menu bên trái để lấy mã mới rồi nhập vào đây. TV sẽ về đúng kho cũ, toàn bộ video vẫn còn nguyên.',
+  },
+}
+
+export function PairScreen({ mode = 'first', onPaired, onCancel }: Props) {
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,14 +66,8 @@ export function PairScreen({ addingToExisting, onPaired, onCancel }: Props) {
           <span className="text-lg text-yt-dim">Admin</span>
         </div>
 
-        <h1 className="mb-2 text-xl font-semibold">
-          {addingToExisting ? 'Ghép thêm một TV' : 'Kết nối với TV'}
-        </h1>
-        <p className="mb-7 text-sm leading-relaxed text-yt-dim">
-          {addingToExisting
-            ? 'Mở app trên TV mới, nó sẽ hiện một mã 6 ký tự. Nhập mã đó vào đây để TV này dùng chung kho video.'
-            : 'Mở app YouTube trên TV. Lần đầu chạy nó sẽ hiện một mã 6 ký tự — nhập mã đó vào đây.'}
-        </p>
+        <h1 className="mb-2 text-xl font-semibold">{COPY[mode].title}</h1>
+        <p className="mb-7 text-sm leading-relaxed text-yt-dim">{COPY[mode].hint}</p>
 
         <label className="mb-2 block text-xs text-yt-dim">Mã hiện trên TV</label>
         <input
@@ -92,7 +107,9 @@ export function PairScreen({ addingToExisting, onPaired, onCancel }: Props) {
         )}
 
         <p className="mt-7 text-xs leading-relaxed text-yt-dim">
-          Mã có hiệu lực 15 phút. Hết hạn thì thoát app trên TV rồi mở lại để lấy mã mới.
+          Mã có hiệu lực 15 phút rồi TV tự đổi mã mới — cứ nhập đúng mã đang hiện trên
+          màn hình. Một mã dùng được cho nhiều máy quản trị, nên nhập ở điện thoại rồi
+          vẫn nhập được ở máy tính.
         </p>
       </form>
     </div>

@@ -48,10 +48,24 @@ mới.
 Chưa ghép thì Trang chủ hiện gợi ý, không hiện mã — mã chỉ xuất hiện khi bạn
 chủ động chọn **Kết nối**.
 
+Đọc mã rồi bấm ra ngoài xem trang chủ vẫn được: app hỏi server ngầm, nhập mã
+xong khoảng 8 giây là TV tự vào kho. Không phải ngồi ở màn hình Kết nối, cũng
+không cần tắt mở lại app.
+
 **Thêm máy quản trị thứ hai.** `admin_token` nằm trong `localStorage` của từng
 trình duyệt, nên điện thoại thứ hai (hay trình duyệt vừa bị xoá dữ liệu) chưa có
-quyền. Trên TV: **Kết nối → Lấy mã để thêm máy quản trị** → nhập mã đó ở máy
-mới. Máy mới nhận token của **đúng kho đang dùng**, không tạo kho mới.
+quyền. Hai đường:
+
+- Mã đang hiện trên TV **dùng được cho nhiều máy** cho tới khi hết hạn — nhập ở
+  điện thoại rồi vẫn nhập được đúng mã đó ở máy tính.
+- TV đã ghép rồi thì: **Kết nối → Lấy mã để thêm máy quản trị**.
+
+Máy mới nhận token của **đúng kho đang dùng**, không tạo kho mới.
+
+**Thu hồi rồi nối lại.** Bên admin bấm **Thu hồi quyền** thì TV thôi xem được và
+trong ~15 giây tự chuyển sang mục Kết nối, hiện mã mới. Muốn nối lại: dòng thiết
+bị đó có nút **Kết nối lại** → nhập mã mới → TV về đúng kho cũ, **video còn
+nguyên**.
 
 ## Cách thêm video
 

@@ -94,6 +94,9 @@ create table if not exists public.pairing_codes (
   device_id  uuid not null references public.devices(id) on delete cascade,
   expires_at timestamptz not null,
   claimed_at timestamptz,
+  -- So may quan tri da nhap ma nay. Mot ma dung duoc cho nhieu may trong
+  -- thoi gian con hieu luc, nen day khong phai co/khong ma la dem.
+  claim_count int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -129,6 +132,10 @@ as $$ select similarity(coalesce(a, ''), coalesce(b, '')) $$;
 -- ---------------------------------------------------------------------------
 -- shelves: cac "hang" ngang tren trang chu TV
 -- ---------------------------------------------------------------------------
+-- Bo sung cho DB da chay ban truoc (them cot moi khong pha du lieu cu)
+alter table public.pairing_codes
+  add column if not exists claim_count int not null default 0;
+
 create table if not exists public.shelves (
   id         uuid primary key default gen_random_uuid(),
   library_id uuid not null references public.libraries(id) on delete cascade,
