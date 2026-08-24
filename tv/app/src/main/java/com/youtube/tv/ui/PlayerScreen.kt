@@ -7,8 +7,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -36,8 +40,10 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.tv.material3.MaterialTheme
@@ -48,7 +54,9 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import com.youtube.tv.data.Video
+import com.youtube.tv.ui.components.VideoCard
 import com.youtube.tv.ui.theme.YtDim
+import com.youtube.tv.ui.theme.YtPanel
 import com.youtube.tv.ui.theme.YtRed
 import com.youtube.tv.ui.theme.YtText
 import kotlinx.coroutines.delay
@@ -56,6 +64,9 @@ import kotlinx.coroutines.delay
 private const val SEEK_STEP_SECONDS = 10f
 private const val CONTROLS_TIMEOUT_MS = 4_000L
 private const val COVER_LINGER_MS = 900L
+
+/** Con lai bao nhieu giay thi tu hien the "Sap phat" o goc man hinh. */
+private const val UP_NEXT_PREVIEW_SECONDS = 8
 
 /**
  * Trinh phat dung IFrame Player API cua YouTube trong WebView — day la cach
@@ -75,6 +86,12 @@ fun PlayerScreen(
     /** Trinh phat biet thoi luong that; dung de dien vao kho neu con trong. */
     onDuration: (seconds: Int) -> Unit,
     onBack: () -> Unit,
+    /** Nguyen ca hang dang phat, de hien bang "Video gợi ý". Rong hoac 1 phan
+     * tu thi khong co gi de goi y, bang se khong mo duoc. */
+    queue: List<Video> = emptyList(),
+    queueIndex: Int = 0,
+    /** Chon mot video khac trong queue tu bang goi y. */
+    onJumpTo: (index: Int) -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -86,6 +103,10 @@ fun PlayerScreen(
     var controlsVisible by remember { mutableStateOf(true) }
     var interactionTick by remember { mutableIntStateOf(0) }
     var errorText by remember { mutableStateOf<String?>(null) }
+    // Bang "Video gợi ý": chi co gi de mo khi hang dang phat co video khac
+    // ngoai video hien tai.
+    val canSuggest = queue.size > 1
+    var suggestionsVisible by remember { mutableStateOf(false) }
 
     /**
      * Che kin khung video khi chua phat. IFrame player tu ve overlay rieng
@@ -115,6 +136,27 @@ fun PlayerScreen(
         }
     }
 
+    /**
+     * Nap video moi vao DUNG player dang co san khi chuyen video (goi y, tu
+     * phat tiep, "Trước/Sau" bang media key) — khong phai video dau tien.
+     *
+     * AndroidView.factory ben duoi chi chay MOT LAN duy nhat luc tao WebView,
+     * va loadVideo() trong onReady() cung chi goi mot lan cho DUNG lan khoi
+     * tao do. Thieu dong nay thi doi video se doi duoc tieu de/thumbnail tren
+     * Controls (do la tham so video duoc ve lai binh thuong) nhung WebView vAn
+     * dung nguyen video cu — nhin nhu bam gi cung khong an thua.
+     */
+    LaunchedEffect(video.id) {
+        // KHONG tu gan currentSeconds/durationSeconds ve video moi o day: no
+        // co the chay TRUOC DisposableEffect ben duoi luu tien do video CU (do
+        // LaunchedEffect la coroutine, chay sau khi ap dung thay doi, nhung
+        // thu tu chinh xac giua hai loai effect nay khong dang de danh cuoc voi
+        // du lieu xem cua nguoi dung). De callback onCurrentSecond/
+        // onVideoDuration cua player tu cap nhat, cham hon chua toi nua giay
+        // nhung chac chan dung.
+        player?.loadVideo(video.youtubeId, startSeconds)
+    }
+
     // Luu tien do dinh ky, khong luu moi giay de do goi mang
     LaunchedEffect(video.id) {
         while (true) {
@@ -139,6 +181,20 @@ fun PlayerScreen(
             .onKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
                 val p = player
+
+                // Bang goi y dang mo: Trai/Phai/OK nhuong cho he thong focus tu
+                // nhien xu ly (giong moi luoi the khac trong app, khong tu bat
+                // o day) — chi bat rieng Len/Xuong de dong bang lai.
+                if (suggestionsVisible) {
+                    return@onKeyEvent when (event.key) {
+                        Key.DirectionUp, Key.DirectionDown -> {
+                            suggestionsVisible = false
+                            true
+                        }
+                        else -> false
+                    }
+                }
+
                 when (event.key) {
                     Key.DirectionCenter, Key.Enter, Key.MediaPlayPause, Key.Spacebar -> {
                         if (playing) p?.pause() else p?.play()
@@ -163,8 +219,21 @@ fun PlayerScreen(
                     }
 
                     Key.MediaNext -> { if (hasNext) onEnded(); true }
+                    Key.MediaPrevious -> {
+                        if (queueIndex > 0) onJumpTo(queueIndex - 1)
+                        true
+                    }
 
-                    Key.DirectionUp, Key.DirectionDown, Key.Info -> { touch(); true }
+                    // Xuong: mo bang "Video gợi ý" liet ke ca hang dang phat, de
+                    // chon video khac ma khong phai Quay lai roi do lai tu Trang
+                    // chu. Remote D-pad thuong khong co phim "Next" rieng, day
+                    // la duong thay the luon co san.
+                    Key.DirectionDown -> {
+                        if (canSuggest) suggestionsVisible = true else touch()
+                        true
+                    }
+
+                    Key.DirectionUp, Key.Info -> { touch(); true }
 
                     else -> false
                 }
@@ -319,7 +388,7 @@ fun PlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = controlsVisible,
+            visible = controlsVisible && !suggestionsVisible,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -330,12 +399,49 @@ fun PlayerScreen(
                 currentSeconds = currentSeconds,
                 durationSeconds = durationSeconds,
                 hasNext = hasNext,
+                canSuggest = canSuggest,
+            )
+        }
+
+        // Sap het video: tu hien truoc video ke tiep se phat, giong app YouTube
+        // that. Chi xem, khong can bam gi — video van tu chay tiep nhu binh
+        // thuong qua onEnded() o MainActivity.
+        val remaining = durationSeconds - currentSeconds
+        AnimatedVisibility(
+            visible = hasNext && !suggestionsVisible && durationSeconds > 0 &&
+                remaining in 1..UP_NEXT_PREVIEW_SECONDS,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 48.dp, bottom = if (controlsVisible) 150.dp else 32.dp),
+        ) {
+            queue.getOrNull(queueIndex + 1)?.let { next ->
+                UpNextPreview(next, secondsLeft = remaining)
+            }
+        }
+
+        AnimatedVisibility(
+            visible = suggestionsVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            SuggestedPanel(
+                queue = queue,
+                currentIndex = queueIndex,
+                onSelect = { index ->
+                    suggestionsVisible = false
+                    onJumpTo(index)
+                },
             )
         }
     }
 
-    // Nut Back cua remote: thoat trinh phat
-    androidx.activity.compose.BackHandler { onBack() }
+    // Nut Back cua remote: dong bang goi y neu dang mo, khong thi moi thoat han
+    androidx.activity.compose.BackHandler {
+        if (suggestionsVisible) suggestionsVisible = false else onBack()
+    }
 }
 
 @Composable
@@ -345,6 +451,7 @@ private fun Controls(
     currentSeconds: Int,
     durationSeconds: Int,
     hasNext: Boolean,
+    canSuggest: Boolean,
 ) {
     val fraction =
         if (durationSeconds > 0) currentSeconds.toFloat() / durationSeconds else 0f
@@ -403,6 +510,10 @@ private fun Controls(
                 Hint(if (playing) "OK: tạm dừng" else "OK: phát")
                 Spacer(Modifier.width(18.dp))
                 Hint("◀ ▶: tua 10 giây")
+                if (canSuggest) {
+                    Spacer(Modifier.width(18.dp))
+                    Hint("▼: video gợi ý")
+                }
                 if (hasNext) {
                     Spacer(Modifier.width(18.dp))
                     Hint("Hết video: tự phát tiếp")
@@ -415,6 +526,100 @@ private fun Controls(
 @Composable
 private fun Hint(text: String) {
     Text(text = text, color = YtDim, style = MaterialTheme.typography.labelMedium)
+}
+
+/** The nho o goc man hinh, xem truoc video se tu phat tiep khi video nay het. */
+@Composable
+private fun UpNextPreview(next: Video, secondsLeft: Int) {
+    Column(
+        modifier = Modifier
+            .width(220.dp)
+            .background(Color.Black.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+            .padding(12.dp),
+    ) {
+        Text(
+            text = "Sắp phát sau ${secondsLeft}s",
+            color = YtDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            coil3.compose.AsyncImage(
+                model = next.thumbnail,
+                contentDescription = next.title,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier
+                    .width(96.dp)
+                    .aspectRatio(16f / 9f)
+                    .background(YtPanel, RoundedCornerShape(4.dp)),
+            )
+            Text(
+                text = next.title,
+                color = YtText,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 10.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Bang chon video khac trong cung hang dang phat. Xep bat dau tu video KE
+ * TIEP roi vong lai tu dau, khong lap lai video dang phat — de o dau danh sach
+ * (va duoc focus san) luon la thao tac nguoi dung can nhat luc nay.
+ */
+@Composable
+private fun SuggestedPanel(
+    queue: List<Video>,
+    currentIndex: Int,
+    onSelect: (index: Int) -> Unit,
+) {
+    val order = remember(queue, currentIndex) {
+        val n = queue.size
+        (1 until n).map { (currentIndex + it) % n }
+    }
+    val firstItem = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        delay(80) // cho LazyRow dung khung truoc khi xin focus
+        runCatching { firstItem.requestFocus() }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.9f))
+            .padding(vertical = 24.dp),
+    ) {
+        Text(
+            text = "Video gợi ý",
+            color = YtText,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(start = 48.dp, bottom = 10.dp),
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 48.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            itemsIndexed(order, key = { _, originalIndex -> queue[originalIndex].id }) { i, originalIndex ->
+                VideoCard(
+                    video = queue[originalIndex],
+                    onClick = { onSelect(originalIndex) },
+                    modifier = if (i == 0) Modifier.focusRequester(firstItem) else Modifier,
+                )
+            }
+        }
+        Text(
+            text = "◀ ▶ chọn · OK phát · ▲ hoặc Quay lại đóng",
+            color = YtDim,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(start = 48.dp, top = 14.dp),
+        )
+    }
 }
 
 private fun clock(totalSeconds: Int): String {

@@ -420,6 +420,17 @@ class MainViewModel : ViewModel() {
         return queue[queueIndex]
     }
 
+    /**
+     * Nguoi dung chon thang mot video trong bang goi y (khong nhat thiet la
+     * video ke tiep) trong khi dang phat. Video do phai da nam san trong hang
+     * doi hien tai — bang goi y chi liet ke dung hang doi nay.
+     */
+    fun jumpToQueueIndex(index: Int): Video? {
+        if (index !in queue.indices) return null
+        queueIndex = index
+        return queue[queueIndex]
+    }
+
     fun resumeSecondsFor(video: Video): Float {
         val saved = _progress.value[video.id] ?: return 0f
         val total = video.durationSeconds ?: return saved.toFloat()

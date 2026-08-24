@@ -154,6 +154,11 @@ private fun YouTubeRoot(vm: MainViewModel = viewModel()) {
                 screen = Screen.Browse
                 vm.refresh(quiet = true) // cap nhat thanh tien do vua xem
             },
+            queue = vm.queue,
+            queueIndex = vm.queueIndex,
+            onJumpTo = { index ->
+                vm.jumpToQueueIndex(index)?.let { screen = Screen.Play(it) }
+            },
         )
 
         Screen.Browse -> Row(Modifier.fillMaxSize()) {

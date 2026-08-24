@@ -417,15 +417,19 @@ Rồi ghép lại như mục 5.
 | D-pad ◀ ▲ ▼ ▶       | Di chuyển giữa các thẻ và các hàng                |
 | OK                  | Mở video / tạm dừng / phát tiếp                   |
 | ◀ ▶ (khi đang phát) | Tua lùi / tua tiến 10 giây                        |
-| ▲ ▼ (khi đang phát) | Hiện lại thanh điều khiển                         |
-| Quay lại            | Thoát trình phát, hoặc từ mục khác về Trang chủ   |
+| ▲ (khi đang phát)   | Hiện lại thanh điều khiển                         |
+| ▼ (khi đang phát)   | Mở bảng **Video gợi ý** — các video khác trong cùng hàng, chọn bằng ◀ ▶ rồi OK để phát ngay |
+| Quay lại            | Đóng bảng gợi ý nếu đang mở, không thì thoát trình phát / về Trang chủ |
 | Esc (bàn phím rời)  | Giống Quay lại                                    |
 
 Ở màn Tìm kiếm, phím ◀ trả con trỏ về thanh điều hướng bên trái (ô nhập chữ không
 giữ phím này để di chuyển con trỏ chữ — trên TV không ai sửa chữ bằng D-pad). Ở
 Trang chủ, Quay lại thoát app như mọi app TV khác.
 
-Hết video sẽ tự phát video tiếp theo trong cùng hàng.
+Hết video sẽ tự phát video tiếp theo trong cùng hàng — vài giây trước khi hết,
+một thẻ nhỏ ở góc màn hình xem trước video sắp phát, giống app YouTube thật.
+Remote nào có phím Next/Previous (media key) thì dùng được luôn để nhảy tới/lùi
+trong hàng mà không cần mở bảng gợi ý.
 
 ---
 
